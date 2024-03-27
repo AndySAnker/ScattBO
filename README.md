@@ -241,7 +241,7 @@ If you encounter any issues or problems with our software, please report them by
 
 If you need help using our software, please reach out to us on our GitHub repository. We'll do our best to assist you and answer any questions you have.
 
-# References**:
+# References:
 
 [1] Szymanski, Nathan J., et al., An autonomous laboratory for the accelerated synthesis of novel materials, Nature, 624(7990), 86-91 (2023)
 
