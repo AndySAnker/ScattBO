@@ -24,6 +24,73 @@ validate that the target material has been synthesised.[3] The benchmark can inc
 
 <p align="center"><i>These scoreboards represent the performance of different BO algorithms on various of the ScattBO benchmarks. If you have new scores to report, feel free to contact us.</i></p>
 
+## Small benchmark 
+
+<table>
+<tr>
+<td>
+
+#### Scoreboard for Sq - Simulated
+| Team | Steps for Convergence<sup>1</sup> | Name of Algorithm |
+|:----:|:---------------------------------:|:-----------------:|
+| #24 | 4808                              | Bruteforce in structure space |
+
+</td>
+<td>
+
+#### Scoreboard for Sq - Experimental
+| Team | Steps for Convergence<sup>3</sup> | Name of Algorithm |
+|:----:|:---------------------------------:|:-----------------:|
+| #24 | 4808                              | Bruteforce in structure space |
+
+</td>
+</tr>
+<tr>
+<td>
+
+#### Scoreboard for Gr - Simulated
+| Team | Steps for Convergence<sup>2</sup> | Name of Algorithm |
+|:----:|:---------------------------------:|:-----------------:|
+| #24 | 4808                              | Bruteforce in structure space |
+
+</td>
+<td>
+
+#### Scoreboard for Gr - Experimental
+| Team | Steps for Convergence<sup>4</sup> | Name of Algorithm |
+|:----:|:---------------------------------:|:-----------------:|
+| #24 | 4808                              | Bruteforce in structure space |
+
+</td>
+</tr>
+<tr>
+<td>
+
+#### Scoreboard for Multi-objective - Simulated
+| Team | Steps for Convergence<sup>5</sup> | Name of Algorithm |
+|:----:|:---------------------------------:|:-----------------:|
+| #24 | 4808                              | Bruteforce in structure space |
+
+</td>
+<td>
+
+#### Scoreboard for Multi-objective - Experimental
+| Team | Steps for Convergence<sup>5</sup> | Name of Algorithm |
+|:----:|:---------------------------------:|:-----------------:|
+| #24 | 4808                              | Bruteforce in structure space |
+
+</td>
+</tr>
+</table>
+
+<sup>1</sup> Steps for Convergence for simulated Sq data is defined as the number of steps until Rwp < 0.04.<br>
+<sup>2</sup> Steps for Convergence for simulated Gr data is defined as the number of steps until Rwp < 0.04.<br>
+<sup>3</sup> Steps for Convergence for experimental Sq data is defined as the number of steps until Rwp < 0.79.<br>
+<sup>4</sup> Steps for Convergence for experimental Gr data is defined as the number of steps until Rwp < 0.84.<br>
+<sup>5</sup> Steps for Convergence for multi-objective optimisation is defined for both above criteria.
+
+## Large benchmark 
+
 <table>
 <tr>
 <td>
