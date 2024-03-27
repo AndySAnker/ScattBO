@@ -21,23 +21,74 @@ validate that the target material has been synthesised.[3] The benchmark can inc
   - OBS: The scattering pattern calculations can be slow on CPU. **It is recommended to use GPU.**
 
 # Scoreboard
-<p align="center">
 
-| Month | Year | Dataset | Simulated or Experimental | Steps for Convergence | Name of Algorithm |
-|:-----:|:----:|:-------:|:------------------------:|:---------------------:|:-----------------:|
-| Jan   | 2022 | Sq      | Simulated                | 100                   | Algorithm 1       |
-| Feb   | 2022 | Gr      | Experimental             | 150                   | Algorithm 2       |
-| Mar   | 2022 | Both    | Simulated                | 120                   | Algorithm 1       |
-| Apr   | 2022 | Sq      | Experimental             | 110                   | Algorithm 3       |
-| May   | 2022 | Gr      | Simulated                | 105                   | Algorithm 2       |
-| Jun   | 2022 | Both    | Experimental             | 130                   | Algorithm 1       |
+<p align="center"><i>These scoreboards represent the performance of different BO algorithms on various of the ScattBO benchmarks. If you have new scores to report, feel free to contact us.</i></p>
 
-</p>
+<table>
+<tr>
+<td>
 
-<p align="center"><i>This scoreboard represents the performance of different BO algorithms on various of the ScattBO benchmarks. If you have new scores to report, feel free to contact us.</i></p>
+#### Scoreboard for Sq - Simulated
+| Month | Year | Steps for Convergence<sup>1</sup> | Name of Algorithm |
+|:-----:|:----:|:---------------------------------:|:-----------------:|
+| Jan   | 2022 | 100                               | Algorithm 1       |
+
+</td>
+<td>
+
+#### Scoreboard for Sq - Experimental
+| Month | Year | Steps for Convergence<sup>2</sup> | Name of Algorithm |
+|:-----:|:----:|:---------------------------------:|:-----------------:|
+| Apr   | 2022 | 110                               | Algorithm 3       |
+
+</td>
+</tr>
+<tr>
+<td>
+
+#### Scoreboard for Gr - Simulated
+| Month | Year | Steps for Convergence<sup>1</sup> | Name of Algorithm |
+|:-----:|:----:|:---------------------------------:|:-----------------:|
+| May   | 2022 | 105                               | Algorithm 2       |
+
+</td>
+<td>
+
+#### Scoreboard for Gr - Experimental
+| Month | Year | Steps for Convergence<sup>2</sup> | Name of Algorithm |
+|:-----:|:----:|:---------------------------------:|:-----------------:|
+| Feb   | 2022 | 150                               | Algorithm 2       |
+
+</td>
+</tr>
+<tr>
+<td>
+
+#### Scoreboard for Multi-objective - Simulated
+| Month | Year | Steps for Convergence<sup>3</sup> | Name of Algorithm |
+|:-----:|:----:|:---------------------------------:|:-----------------:|
+| Mar   | 2022 | 120                               | Algorithm 1       |
+
+</td>
+<td>
+
+#### Scoreboard for Multi-objective - Experimental
+| Month | Year | Steps for Convergence<sup>3</sup> | Name of Algorithm |
+|:-----:|:----:|:---------------------------------:|:-----------------:|
+| Jun   | 2022 | 130                               | Algorithm 1       |
+
+</td>
+</tr>
+</table>
+
+<sup>1</sup> Steps for Convergence for simulated Sq data is defined as the number of steps until Rwp < 0.04.<br>
+<sup>2</sup> Steps for Convergence for simulated Gr data is defined as the number of steps until Rwp < 0.04.
+<sup>3</sup> Steps for Convergence for experimental Sq data is defined as the number of steps until Rwp < 0.79.
+<sup>3</sup> Steps for Convergence for experimental Gr data is defined as the number of steps until Rwp < 0.84.
+<sup>3</sup> Steps for Convergence for multi-objective optimisation is defined for both above criteria.
 
 # Usage
-See XXXX for examples of single-objective optimisation with [Dragonfly](https://github.com/dragonfly/dragonfly/tree/master) and XXX for multi-objective optimisation.
+See (https://github.com/AndySAnker/ScattBO/blob/main/ScatBO_SingleObjective.ipynb) for examples of single-objective optimisation with [Dragonfly](https://github.com/dragonfly/dragonfly/tree/master).
 
 ## Example usage with [Dragonfly](https://github.com/dragonfly/dragonfly/tree/master)
 ```python
