@@ -1,19 +1,4 @@
----
-number: 24 # leave as-is, maintainers will adjust
-title: ScattBO Benchmark -Bayesian optimisation for materials discovery
-topic: benchmark-dev
-team_leads:
-  - Andy S. Anker (Technical University of Denmark & University of Oxford)
-
-
-# Comment these lines by prepending the pound symbol (#) to each line to hide these elements
-contributors:
-#  - Name (Affiliation)
-
-# github: AC-BO-Hackathon/project-ScattBO
-# youtube_video: <your-video-id>
-
----
+# ScattBO Benchmark - Bayesian optimisation for materials discovery
 
 A self-driving laboratory (SDL) is an autonomous platform that conducts machine learning (ML) selected experiments to achieve a user-defined objective. An objective can be to synthesise a specific material.[1]
 Such an SDL will synthesise a material, evaluate if this is the target material and if necessary optimise the synthesis parameters for the next synthesis. One way to evaluate if the material is the target material is by measuring scattering data and comparing that to the scattering pattern of the target material.
