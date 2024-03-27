@@ -29,17 +29,17 @@ validate that the target material has been synthesised.[3] The benchmark can inc
 <td>
 
 #### Scoreboard for Sq - Simulated
-| Year | Steps for Convergence<sup>1</sup> | Name of Algorithm |
+| Team | Steps for Convergence<sup>1</sup> | Name of Algorithm |
 |:----:|:---------------------------------:|:-----------------:|
-| 2022 | 100                               | Algorithm 1       |
+| #24 | 4808                              | Bruteforce in structure space |
 
 </td>
 <td>
 
 #### Scoreboard for Sq - Experimental
-| Year | Steps for Convergence<sup>2</sup> | Name of Algorithm |
+| Team | Steps for Convergence<sup>3</sup> | Name of Algorithm |
 |:----:|:---------------------------------:|:-----------------:|
-| 2022 | 110                               | Algorithm 3       |
+| #24 | 4808                              | Bruteforce in structure space |
 
 </td>
 </tr>
@@ -47,17 +47,17 @@ validate that the target material has been synthesised.[3] The benchmark can inc
 <td>
 
 #### Scoreboard for Gr - Simulated
-| Year | Steps for Convergence<sup>1</sup> | Name of Algorithm |
+| Team | Steps for Convergence<sup>2</sup> | Name of Algorithm |
 |:----:|:---------------------------------:|:-----------------:|
-| 2022 | 105                               | Algorithm 2       |
+| #24 | 4808                              | Bruteforce in structure space |
 
 </td>
 <td>
 
 #### Scoreboard for Gr - Experimental
-| Year | Steps for Convergence<sup>2</sup> | Name of Algorithm |
+| Team | Steps for Convergence<sup>4</sup> | Name of Algorithm |
 |:----:|:---------------------------------:|:-----------------:|
-| 2022 | 150                               | Algorithm 2       |
+| #24 | 4808                              | Bruteforce in structure space |
 
 </td>
 </tr>
@@ -65,30 +65,27 @@ validate that the target material has been synthesised.[3] The benchmark can inc
 <td>
 
 #### Scoreboard for Multi-objective - Simulated
-| Year | Steps for Convergence<sup>1</sup> | Name of Algorithm |
+| Team | Steps for Convergence<sup>5</sup> | Name of Algorithm |
 |:----:|:---------------------------------:|:-----------------:|
-| 2022 | 120                               | Algorithm 1       |
+| #24 | 4808                              | Bruteforce in structure space |
 
 </td>
 <td>
 
 #### Scoreboard for Multi-objective - Experimental
-| Year | Steps for Convergence<sup>2</sup> | Name of Algorithm |
+| Team | Steps for Convergence<sup>5</sup> | Name of Algorithm |
 |:----:|:---------------------------------:|:-----------------:|
-| 2022 | 130                               | Algorithm 1       |
+| #24 | 4808                              | Bruteforce in structure space |
 
 </td>
 </tr>
 </table>
 
-<sup>1</sup> Steps for Convergence for simulated data is defined as the number of steps until Rwp < XXX.<br>
-<sup>2</sup> Steps for Convergence for experimental data is defined as the number of steps until Rwp < YYY.
-
 <sup>1</sup> Steps for Convergence for simulated Sq data is defined as the number of steps until Rwp < 0.04.<br>
-<sup>2</sup> Steps for Convergence for simulated Gr data is defined as the number of steps until Rwp < 0.04.
-<sup>3</sup> Steps for Convergence for experimental Sq data is defined as the number of steps until Rwp < 0.79.
-<sup>3</sup> Steps for Convergence for experimental Gr data is defined as the number of steps until Rwp < 0.84.
-<sup>3</sup> Steps for Convergence for multi-objective optimisation is defined for both above criteria.
+<sup>2</sup> Steps for Convergence for simulated Gr data is defined as the number of steps until Rwp < 0.04.<br>
+<sup>3</sup> Steps for Convergence for experimental Sq data is defined as the number of steps until Rwp < 0.79.<br>
+<sup>4</sup> Steps for Convergence for experimental Gr data is defined as the number of steps until Rwp < 0.84.<br>
+<sup>5</sup> Steps for Convergence for multi-objective optimisation is defined for both above criteria.
 
 # Usage
 See (https://github.com/AndySAnker/ScattBO/blob/main/ScatBO_SingleObjective.ipynb) for examples of single-objective optimisation with [Dragonfly](https://github.com/dragonfly/dragonfly/tree/master).
