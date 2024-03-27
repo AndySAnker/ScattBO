@@ -73,7 +73,7 @@ def generate_structure(pH, pressure, solvent, atom='Au'):
     """
     # Scale the size of the structure based on pH
     scale_factor = pH / 14  # Normalize pH to range [0, 1]
-    noshells = int(scale_factor * 4) + 2  # Scale noshells from 1 to 4
+    noshells = int(scale_factor * 10) + 2  # Scale noshells from 1 to 4
     p = q = r = noshells  # Set p, q, r to noshells
     layers = [noshells] * 3  # Set layers to [noshells, noshells, noshells]
     surfaces=[[1,0,0], [1,1,0], [1,1,1]]  # Set surfaces to [100], [110], [111]
