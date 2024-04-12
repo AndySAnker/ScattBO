@@ -1,10 +1,8 @@
 # ScattBO Benchmark - Bayesian optimisation for materials discovery
 
-A self-driving laboratory (SDL) is an autonomous platform that conducts machine learning (ML) selected experiments to achieve a user-defined objective. An objective can be to synthesise a specific material.[1]
-Such an SDL will synthesise a material, evaluate if this is the target material and if necessary optimise the synthesis parameters for the next synthesis. One way to evaluate if the material is the target material is by measuring scattering data and comparing that to the scattering pattern of the target material.
+A self-driving laboratory (SDL) is an autonomous platform that conducts machine learning (ML) selected experiments to achieve a user-defined objective. An objective can be to synthesise a specific material.[1] Such an SDL will synthesise a material, evaluate if this is the target material and if necessary optimise the synthesis parameters for the next synthesis. One way to evaluate if the material is the target material is by measuring scattering data and comparing that to the scattering pattern of the target material. However, these types of SDLs can be expensive to run, which means that intelligent experimental planning is essential. At the same time, only a few people have access to an SDL for materials discovery. Therefore, it is currently challenging to benchmark Bayesian optimisation algorithms for experimental planning tasks in SDLs.
 
-Here, we present a Python-based benchmark (ScattBO) that simulates a SDL for materials discovery. Based on a set of synthesis parameters, the function "synthesis" a structure, calculate the scattering pattern[2] and compare this to the scattering pattern of the target structure. Note: Scattering data may not be enough to definitely 
-validate that the target material has been synthesised.[3] The benchmark can include other types of data as long they can be simulated.
+Here, we present a Python-based benchmark (ScattBO) that is an in silico simulation of an SDL for materials discovery. Based on a set of synthesis parameters, the benchmark ‘synthesises’ a structure, calculates the scattering pattern[2] and compares this to the scattering pattern of the target structure. Note: Scattering data may not be enough to conclusively validate that the target material has been synthesised.[3] The benchmark can include other types of data as long they can be simulated.
 
 **Synthesis parameters**:
   - pH (float):       The pH value, which scales the size of the structure. Range: [0, 14]
@@ -31,17 +29,22 @@ validate that the target material has been synthesised.[3] The benchmark can inc
 <td>
 
 #### Scoreboard for Sq - Simulated
-| Team | Steps for Convergence<sup>1</sup> | Name of Algorithm |
-|:----:|:---------------------------------:|:-----------------:|
-| #24 | 4808                              | Bruteforce in structure space |
+| Steps for Convergence<sup>1</sup> | Name of Algorithm |
+|:---------------------------------:|:-----------------:|
+| 51                              | [skopt]https://github.com/AndySAnker/ScattBO/tree/main/tools/skopt) |
+| 51                              | [Dragonfly](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly) |
+| 4808                              | [Bruteforce in structure space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
+| 6400                              | [Bruteforce in synthesis space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 
 </td>
 <td>
 
 #### Scoreboard for Sq - Experimental
-| Team | Steps for Convergence<sup>3</sup> | Name of Algorithm |
-|:----:|:---------------------------------:|:-----------------:|
-| #24 | 4808                              | Bruteforce in structure space |
+| Steps for Convergence<sup>3</sup> | Name of Algorithm |
+|:---------------------------------:|:-----------------:|
+| 27                              | [Dragonfly](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly) |
+| 4808                              | [Bruteforce in structure space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
+| 6400                              | [Bruteforce in synthesis space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 
 </td>
 </tr>
@@ -49,17 +52,22 @@ validate that the target material has been synthesised.[3] The benchmark can inc
 <td>
 
 #### Scoreboard for Gr - Simulated
-| Team | Steps for Convergence<sup>2</sup> | Name of Algorithm |
-|:----:|:---------------------------------:|:-----------------:|
-| #24 | 4808                              | Bruteforce in structure space |
+| Steps for Convergence<sup>2</sup> | Name of Algorithm |
+|:---------------------------------:|:-----------------:|
+| 39                              | [Dragonfly](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly) |
+| 39                              | [skopt]https://github.com/AndySAnker/ScattBO/tree/main/tools/skopt) |
+| 4808                              | [Bruteforce in structure space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
+| 6400                              | [Bruteforce in synthesis space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 
 </td>
 <td>
 
 #### Scoreboard for Gr - Experimental
-| Team | Steps for Convergence<sup>4</sup> | Name of Algorithm |
-|:----:|:---------------------------------:|:-----------------:|
-| #24 | 4808                              | Bruteforce in structure space |
+| Steps for Convergence<sup>4</sup> | Name of Algorithm |
+|:---------------------------------:|:-----------------:|
+| 16                              | [Dragonfly](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly/) |
+| 4808                              | [Bruteforce in structure space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
+| 6400                              | [Bruteforce in synthesis space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 
 </td>
 </tr>
@@ -67,17 +75,21 @@ validate that the target material has been synthesised.[3] The benchmark can inc
 <td>
 
 #### Scoreboard for Multi-objective - Simulated
-| Team | Steps for Convergence<sup>5</sup> | Name of Algorithm |
-|:----:|:---------------------------------:|:-----------------:|
-| #24 | 4808                              | Bruteforce in structure space |
+| Steps for Convergence<sup>5</sup> | Name of Algorithm |
+|:---------------------------------:|:-----------------:|
+| 45                                | [Dragonfly (psedu-MOBO)](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly) |
+| 4808                              | [Bruteforce in structure space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
+| 6400                              | [Bruteforce in synthesis space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 
 </td>
 <td>
 
 #### Scoreboard for Multi-objective - Experimental
-| Team | Steps for Convergence<sup>5</sup> | Name of Algorithm |
-|:----:|:---------------------------------:|:-----------------:|
-| #24 | 4808                              | Bruteforce in structure space |
+| Steps for Convergence<sup>5</sup> | Name of Algorithm |
+|:---------------------------------:|:-----------------:|
+| >200                              | [Dragonfly (psedu-MOBO)](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly) |
+| 4808                              | [Bruteforce in structure space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
+| 6400                              | [Bruteforce in synthesis space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 
 </td>
 </tr>
@@ -85,8 +97,8 @@ validate that the target material has been synthesised.[3] The benchmark can inc
 
 <sup>1</sup> Steps for Convergence for simulated Sq data is defined as the number of steps until Rwp < 0.04.<br>
 <sup>2</sup> Steps for Convergence for simulated Gr data is defined as the number of steps until Rwp < 0.04.<br>
-<sup>3</sup> Steps for Convergence for experimental Sq data is defined as the number of steps until Rwp < 0.79.<br>
-<sup>4</sup> Steps for Convergence for experimental Gr data is defined as the number of steps until Rwp < 0.84.<br>
+<sup>3</sup> Steps for Convergence for experimental Sq data is defined as the number of steps until Rwp < 0.84.<br>
+<sup>4</sup> Steps for Convergence for experimental Gr data is defined as the number of steps until Rwp < 0.80.<br>
 <sup>5</sup> Steps for Convergence for multi-objective optimisation is defined for both above criteria.
 
 ## Large benchmark 
@@ -96,17 +108,21 @@ validate that the target material has been synthesised.[3] The benchmark can inc
 <td>
 
 #### Scoreboard for Sq - Simulated
-| Team | Steps for Convergence<sup>1</sup> | Name of Algorithm |
-|:----:|:---------------------------------:|:-----------------:|
-| #24 | 4808                              | Bruteforce in structure space |
+| Steps for Convergence<sup>1</sup> | Name of Algorithm |
+|:---------------------------------:|:-----------------:|
+| 30                              | [Dragonfly](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly) |
+| 4808                              | [Bruteforce in structure space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
+| 6400                              | [Bruteforce in synthesis space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 
 </td>
 <td>
 
 #### Scoreboard for Sq - Experimental
-| Team | Steps for Convergence<sup>3</sup> | Name of Algorithm |
-|:----:|:---------------------------------:|:-----------------:|
-| #24 | 4808                              | Bruteforce in structure space |
+| Steps for Convergence<sup>3</sup> | Name of Algorithm |
+|:---------------------------------:|:-----------------:|
+| 35                              | [Dragonfly](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly) |
+| 4808                              | [Bruteforce in structure space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
+| 6400                              | [Bruteforce in synthesis space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 
 </td>
 </tr>
@@ -114,17 +130,21 @@ validate that the target material has been synthesised.[3] The benchmark can inc
 <td>
 
 #### Scoreboard for Gr - Simulated
-| Team | Steps for Convergence<sup>2</sup> | Name of Algorithm |
-|:----:|:---------------------------------:|:-----------------:|
-| #24 | 4808                              | Bruteforce in structure space |
+| Steps for Convergence<sup>2</sup> | Name of Algorithm |
+|:---------------------------------:|:-----------------:|
+| 114                              | [Dragonfly](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly) |
+| 4808                              | [Bruteforce in structure space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
+| 6400                              | [Bruteforce in synthesis space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 
 </td>
 <td>
 
 #### Scoreboard for Gr - Experimental
-| Team | Steps for Convergence<sup>4</sup> | Name of Algorithm |
-|:----:|:---------------------------------:|:-----------------:|
-| #24 | 4808                              | Bruteforce in structure space |
+| Steps for Convergence<sup>4</sup> | Name of Algorithm |
+|:---------------------------------:|:-----------------:|
+| 33                              | [Dragonfly](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly) |
+| 4808                              | [Bruteforce in structure space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
+| 6400                              | [Bruteforce in synthesis space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 
 </td>
 </tr>
@@ -132,17 +152,21 @@ validate that the target material has been synthesised.[3] The benchmark can inc
 <td>
 
 #### Scoreboard for Multi-objective - Simulated
-| Team | Steps for Convergence<sup>5</sup> | Name of Algorithm |
-|:----:|:---------------------------------:|:-----------------:|
-| #24 | 4808                              | Bruteforce in structure space |
+| Steps for Convergence<sup>5</sup> | Name of Algorithm |
+|:---------------------------------:|:-----------------:|
+| 78                                | [Dragonfly (psedu-MOBO)](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly) |
+| 4808                              | [Bruteforce in structure space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
+| 6400                              | [Bruteforce in synthesis space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 
 </td>
 <td>
 
 #### Scoreboard for Multi-objective - Experimental
-| Team | Steps for Convergence<sup>5</sup> | Name of Algorithm |
-|:----:|:---------------------------------:|:-----------------:|
-| #24 | 4808                              | Bruteforce in structure space |
+| Steps for Convergence<sup>5</sup> | Name of Algorithm |
+|:---------------------------------:|:-----------------:|
+| >200                                | [Dragonfly (psedu-MOBO)](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly) |
+| 4808                              | [Bruteforce in structure space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
+| 6400                              | [Bruteforce in synthesis space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 
 </td>
 </tr>
@@ -150,12 +174,12 @@ validate that the target material has been synthesised.[3] The benchmark can inc
 
 <sup>1</sup> Steps for Convergence for simulated Sq data is defined as the number of steps until Rwp < 0.04.<br>
 <sup>2</sup> Steps for Convergence for simulated Gr data is defined as the number of steps until Rwp < 0.04.<br>
-<sup>3</sup> Steps for Convergence for experimental Sq data is defined as the number of steps until Rwp < 0.79.<br>
-<sup>4</sup> Steps for Convergence for experimental Gr data is defined as the number of steps until Rwp < 0.84.<br>
+<sup>3</sup> Steps for Convergence for experimental Sq data is defined as the number of steps until Rwp < 0.84.<br>
+<sup>4</sup> Steps for Convergence for experimental Gr data is defined as the number of steps until Rwp < 0.80.<br>
 <sup>5</sup> Steps for Convergence for multi-objective optimisation is defined for both above criteria.
 
 # Usage
-See (https://github.com/AndySAnker/ScattBO/blob/main/ScatBO_SingleObjective.ipynb) for examples of single-objective optimisation with [Dragonfly](https://github.com/dragonfly/dragonfly/tree/master).
+See (https://github.com/AndySAnker/ScattBO/tree/main/tools) for examples of single-objective optimisation with [Dragonfly](https://github.com/dragonfly/dragonfly/tree/master) or [skopt](https://scikit-optimize.github.io/stable/auto_examples/bayesian-optimization.html).
 
 ## Example usage with [Dragonfly](https://github.com/dragonfly/dragonfly/tree/master)
 ```python
@@ -194,7 +218,7 @@ def benchmark_wrapper(params):
 # Define the domain for each parameter
 domain = [
     [2, 12],  # pH values range from 2 to 12
-    [20, 80],  # pressure values range from 20 to 80
+    [15, 80],  # pressure values range from 15 to 80
     [0, 1]  # solvent can be 0 ('Ethanol') or 1 ('Methanol')
 ]
 

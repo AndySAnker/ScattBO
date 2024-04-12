@@ -73,7 +73,7 @@ def generate_structure(pH, pressure, solvent, atom='Au'):
     """
     # Scale the size of the structure based on pH
     scale_factor = pH / 14  # Normalize pH to range [0, 1]
-    noshells = int(scale_factor * 10) + 2  # Scale noshells from 1 to 4
+    noshells = int(scale_factor * 8) + 2  # Scale noshells from 1 to 4
     p = q = r = noshells  # Set p, q, r to noshells
     layers = [noshells] * 3  # Set layers to [noshells, noshells, noshells]
     surfaces=[[1,0,0], [1,1,0], [1,1,1]]  # Set surfaces to [100], [110], [111]
@@ -115,14 +115,14 @@ def LoadData(simulated_or_experimental='simulated', scatteringfunction='Gr'):
     # Set the filename based on the simulated_or_experimental and scatteringfunction variables
     if scatteringfunction == 'Gr':
         if simulated_or_experimental == 'simulated':
-            filename = 'Data/Gr/Target_PDF_benchmark.npy'
+            filename = '../Data/Gr/Target_PDF_benchmark.npy'
         else:  # simulated_or_experimental == 'experimental'
-            filename = 'Data/Gr/Experimental_PDF.gr'
+            filename = '../Data/Gr/Experimental_PDF.gr'
     else:  # scatteringfunction == 'Sq'
         if simulated_or_experimental == 'simulated':
-            filename = 'Data/Sq/Target_Sq_benchmark.npy'
+            filename = '../Data/Sq/Target_Sq_benchmark.npy'
         else:  # simulated_or_experimental == 'experimental'
-            filename = 'Data/Sq/Experimental_Sq.sq'
+            filename = '../Data/Sq/Experimental_Sq.sq'
 
     data = np.loadtxt(filename, skiprows=25) if filename.endswith('.gr') or filename.endswith('.sq') else np.load(filename)
     x_target = data[:, 0]
@@ -137,7 +137,7 @@ def ScatterBO_small_benchmark(params, plot=False, simulated_or_experimental='sim
     Parameters:
     params (tuple): A tuple containing the following parameters:
         pH (float): The pH value, which scales the size of the structure. Range: [2, 12]
-        pressure (float): The pressure value, which controls the lattice constant. Range: [20, 80]
+        pressure (float): The pressure value, which controls the lattice constant. Range: [15, 80]
         solvent (int): The solvent type, which determines the structure type for small clusters. 
                         0 for 'Ethanol', 1 for 'Methanol'
     plot (bool): If True, plot the simulated and target PDFs. Default is False.
@@ -157,8 +157,8 @@ def ScatterBO_small_benchmark(params, plot=False, simulated_or_experimental='sim
         raise ValueError("Invalid pH value. Expected a value between 2 and 12, got {}".format(pH))
 
     # Check if pressure is within the expected range
-    if not 20 <= pressure <= 80:
-        raise ValueError("Invalid pressure value. Expected a value between 20 and 80, got {}".format(pressure))
+    if not 15 <= pressure <= 80:
+        raise ValueError("Invalid pressure value. Expected a value between 15 and 80, got {}".format(pressure))
 
     # Check if solvent is either 0 or 1
     if solvent not in ["Ethanol", "Methanol"]:
