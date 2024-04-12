@@ -31,7 +31,7 @@ Here, we present a Python-based benchmark (ScattBO) that is an in silico simulat
 #### Scoreboard for Sq - Simulated
 | Steps for Convergence<sup>1</sup> | Name of Algorithm |
 |:---------------------------------:|:-----------------:|
-| 51                              | [skopt]https://github.com/AndySAnker/ScattBO/tree/main/tools/skopt) |
+| 51                              | [skopt](https://github.com/AndySAnker/ScattBO/tree/main/tools/skopt) |
 | 51                              | [Dragonfly](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly) |
 | 4808                              | [Bruteforce in structure space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 | 6400                              | [Bruteforce in synthesis space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
@@ -55,7 +55,7 @@ Here, we present a Python-based benchmark (ScattBO) that is an in silico simulat
 | Steps for Convergence<sup>2</sup> | Name of Algorithm |
 |:---------------------------------:|:-----------------:|
 | 39                              | [Dragonfly](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly) |
-| 39                              | [skopt]https://github.com/AndySAnker/ScattBO/tree/main/tools/skopt) |
+| 39                              | [skopt](https://github.com/AndySAnker/ScattBO/tree/main/tools/skopt) |
 | 4808                              | [Bruteforce in structure space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 | 6400                              | [Bruteforce in synthesis space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 
