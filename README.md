@@ -45,6 +45,7 @@ Here, we present a Python-based benchmark (ScattBO) that is an in silico simulat
 |:---------------------------------:|:-----------------:|
 | 20                              | [skopt](https://github.com/AndySAnker/ScattBO/tree/main/tools/skopt) |
 | 27                              | [Dragonfly](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly) |
+| >200                              | [bayes_opt](https://github.com/AndySAnker/ScattBO/tree/main/tools/bayes_opt) |
 | 4808                              | [Bruteforce in structure space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 | 6400                              | [Bruteforce in synthesis space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 
@@ -96,6 +97,7 @@ Here, we present a Python-based benchmark (ScattBO) that is an in silico simulat
 |:---------------------------------:|:-----------------:|
 | >200                              | [Dragonfly (psedu-MOBO)](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly) |
 | >200                              | [skopt (psedu-MOBO)](https://github.com/AndySAnker/ScattBO/tree/main/tools/skopt) |
+| >200                              | [bayes_opt (psedu-MOBO)](https://github.com/AndySAnker/ScattBO/tree/main/tools/bayes_opt) |
 | 4808                              | [Bruteforce in structure space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 | 6400                              | [Bruteforce in synthesis space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 
@@ -178,6 +180,7 @@ Here, we present a Python-based benchmark (ScattBO) that is an in silico simulat
 | Steps for Convergence<sup>5</sup> | Name of Algorithm |
 |:---------------------------------:|:-----------------:|
 | >200                                | [Dragonfly (psedu-MOBO)](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly) |
+| >200                              | [bayes_opt (psedu-MOBO)](https://github.com/AndySAnker/ScattBO/tree/main/tools/bayes_opt) |
 | 4808                              | [Bruteforce in structure space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 | 6400                              | [Bruteforce in synthesis space](https://github.com/AndySAnker/ScattBO/blob/main/tools/bruteforce) |
 
