@@ -55,7 +55,6 @@ Here, we present a Python-based benchmark (ScattBO) that is an in silico simulat
 #### Scoreboard for Gr - Simulated
 | Steps for Convergence<sup>2</sup> | Name of Algorithm |
 |:---------------------------------:|:-----------------:|
-
 | 39                              | [Dragonfly](https://github.com/AndySAnker/ScattBO/blob/main/tools/dragonfly) |
 | 39                              | [skopt](https://github.com/AndySAnker/ScattBO/tree/main/tools/skopt) |
 | 41                              | [bayes_opt](https://github.com/AndySAnker/ScattBO/tree/main/tools/bayes_opt) |
