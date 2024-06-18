@@ -1,0 +1,3 @@
+ase
+debyecalculator
+bayesian-optimization
