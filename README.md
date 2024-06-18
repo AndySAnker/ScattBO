@@ -194,6 +194,14 @@ Here, we present a Python-based benchmark (ScattBO) that is an in silico simulat
 <sup>4</sup> Steps for Convergence for experimental Gr data is defined as the number of steps until Rwp < 0.80.<br>
 <sup>5</sup> Steps for Convergence for multi-objective optimisation is defined for both above criteria.
 
+# Installation
+Ensure that you have PyTorch installed. Follow the instructions on the official PyTorch website to install the appropriate version for your system: [PyTorch Installation Guide](https://pytorch.org/get-started/locally/). 
+
+The rest of the requirements for ScattBO can be found in the [requirements.txt](https://github.com/AndySAnker/ScattBO/blob/main/requirements.txt) file and be installed with
+```
+pip install -r requirements.txt
+```
+
 # Usage
 See (https://github.com/AndySAnker/ScattBO/tree/main/tools) for examples of single-objective optimisation with [Dragonfly](https://github.com/dragonfly/dragonfly/tree/master) or [skopt](https://scikit-optimize.github.io/stable/auto_examples/bayesian-optimization.html).
 
