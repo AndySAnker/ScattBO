@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from ase.lattice.cubic import FaceCenteredCubic, SimpleCubic, BodyCenteredCubic
 from ase.lattice.hexagonal import HexagonalClosedPacked
 from ase.cluster.icosahedron import Icosahedron
@@ -10,7 +12,10 @@ import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 from plotly.subplots import make_subplots
 
-def calculate_scattering(cluster, function='Gr'):
+ROOT_DIR = Path(__file__).parent.parent.resolve()
+
+
+def calculate_scattering(cluster, function="Gr"):
     """
     Calculate a Pair Distribution Function (PDF) or Structure Factor (Sq) from a given structure.
 
@@ -31,7 +36,7 @@ def calculate_scattering(cluster, function='Gr'):
     >>> q, S = calculate_scattering(cluster, function='Sq')
     """
     # Check if the function parameter is valid
-    assert function in ['Gr', 'Sq'], "Function must be 'Gr' or 'Sq'"
+    assert function in ["Gr", "Sq"], "Function must be 'Gr' or 'Sq'"
 
     # Initialise calculator object
     calc = DebyeCalculator(qmin=2, qmax=10.0, rmax=30, qstep=0.01)
@@ -47,7 +52,7 @@ def calculate_scattering(cluster, function='Gr'):
     structure_tuple = (symbols, positions_tensor)
 
     # Calculate Pair Distribution Function or Structure Factor
-    if function == 'Gr':
+    if function == "Gr":
         r, G = calc.gr(structure_source=structure_tuple)
         G /= G.max()
         return r, G
@@ -57,14 +62,14 @@ def calculate_scattering(cluster, function='Gr'):
         return q, S
 
 
-def generate_structure(pH, pressure, solvent, atom='Au'):
+def generate_structure(pH, pressure, solvent, atom="Au"):
     """
     Generate a structure based on the given parameters.
 
     Parameters:
     pH (float): The pH value, which scales the size of the structure. Range: [0, 14]
     pressure (float): The pressure value, which controls the lattice constant. Range: [0, 100]
-    solvent (str): The solvent type, which determines the structure type for small clusters. 
+    solvent (str): The solvent type, which determines the structure type for small clusters.
                    'Ethanol', 'Methanol', 'Water', or any other solvent
     atom (str): The atom type. Default is 'Au'.
 
@@ -76,61 +81,88 @@ def generate_structure(pH, pressure, solvent, atom='Au'):
     noshells = int(scale_factor * 8) + 2  # Scale noshells from 1 to 4
     p = q = r = noshells  # Set p, q, r to noshells
     layers = [noshells] * 3  # Set layers to [noshells, noshells, noshells]
-    surfaces=[[1,0,0], [1,1,0], [1,1,1]]  # Set surfaces to [100], [110], [111]
+    surfaces = [[1, 0, 0], [1, 1, 0], [1, 1, 1]]  # Set surfaces to [100], [110], [111]
 
     # Control lattice constant by pressure
-    lc = 2 * (pressure / 100) + 2.5  # Scale lattice constant from 2.5 to 4.5 based on pressure
+    lc = (
+        2 * (pressure / 100) + 2.5
+    )  # Scale lattice constant from 2.5 to 4.5 based on pressure
 
     # Determine the structure type based on the number of atoms and solvent
-    num_atoms = noshells ** 3  # Assume the number of atoms is proportional to noshells^3
-    if num_atoms > 2000: # approximate 3 nm in diameter
-        if solvent == 'Ethanol':
-            cluster = FaceCenteredCubic(atom, directions=surfaces, size=layers, latticeconstant=2*np.sqrt(0.5*lc**2))
-            cluster.structure_type = 'FaceCenteredCubic'
-        elif solvent == 'Methanol':
-            cluster = SimpleCubic(atom, directions=surfaces, size=layers, latticeconstant=lc)
-            cluster.structure_type = 'SimpleCubic'
-        elif solvent == 'Water':
-            cluster = BodyCenteredCubic(atom, directions=surfaces, size=layers, latticeconstant=lc)
-            cluster.structure_type = 'BodyCenteredCubic'
+    num_atoms = noshells**3  # Assume the number of atoms is proportional to noshells^3
+    if num_atoms > 2000:  # approximate 3 nm in diameter
+        if solvent == "Ethanol":
+            cluster = FaceCenteredCubic(
+                atom,
+                directions=surfaces,
+                size=layers,
+                latticeconstant=2 * np.sqrt(0.5 * lc**2),
+            )
+            cluster.structure_type = "FaceCenteredCubic"
+        elif solvent == "Methanol":
+            cluster = SimpleCubic(
+                atom, directions=surfaces, size=layers, latticeconstant=lc
+            )
+            cluster.structure_type = "SimpleCubic"
+        elif solvent == "Water":
+            cluster = BodyCenteredCubic(
+                atom, directions=surfaces, size=layers, latticeconstant=lc
+            )
+            cluster.structure_type = "BodyCenteredCubic"
         else:
-            cluster = HexagonalClosedPacked(atom, latticeconstant=(lc, lc*1.633), size=(noshells, noshells, noshells))
-            cluster.structure_type = 'HexagonalClosedPacked'
-    elif solvent == 'Ethanol':
-        cluster = Icosahedron(atom, noshells, 2*np.sqrt(0.5*lc**2))
-        cluster.structure_type = 'Icosahedron'
-    elif solvent == 'Methanol':
-        cluster = Decahedron(atom, p, q, r, 2*np.sqrt(0.5*lc**2))
-        cluster.structure_type = 'Decahedron'
-    elif solvent == 'Water':
-        cluster = BodyCenteredCubic(atom, directions=surfaces, size=layers, latticeconstant=lc)
-        cluster.structure_type = 'BodyCenteredCubic'
+            cluster = HexagonalClosedPacked(
+                atom,
+                latticeconstant=(lc, lc * 1.633),
+                size=(noshells, noshells, noshells),
+            )
+            cluster.structure_type = "HexagonalClosedPacked"
+    elif solvent == "Ethanol":
+        cluster = Icosahedron(atom, noshells, 2 * np.sqrt(0.5 * lc**2))
+        cluster.structure_type = "Icosahedron"
+    elif solvent == "Methanol":
+        cluster = Decahedron(atom, p, q, r, 2 * np.sqrt(0.5 * lc**2))
+        cluster.structure_type = "Decahedron"
+    elif solvent == "Water":
+        cluster = BodyCenteredCubic(
+            atom, directions=surfaces, size=layers, latticeconstant=lc
+        )
+        cluster.structure_type = "BodyCenteredCubic"
     else:
-        cluster = Octahedron(atom, length=noshells, latticeconstant=2*np.sqrt(0.5*lc**2))
-        cluster.structure_type = 'Octahedron'
+        cluster = Octahedron(
+            atom, length=noshells, latticeconstant=2 * np.sqrt(0.5 * lc**2)
+        )
+        cluster.structure_type = "Octahedron"
 
     return cluster
 
-def LoadData(simulated_or_experimental='simulated', scatteringfunction='Gr'):
-    # Set the filename based on the simulated_or_experimental and scatteringfunction variables
-    if scatteringfunction == 'Gr':
-        if simulated_or_experimental == 'simulated':
-            filename = '../Data/Gr/Target_PDF_benchmark.npy'
-        else:  # simulated_or_experimental == 'experimental'
-            filename = '../Data/Gr/Experimental_PDF.gr'
-    else:  # scatteringfunction == 'Sq'
-        if simulated_or_experimental == 'simulated':
-            filename = '../Data/Sq/Target_Sq_benchmark.npy'
-        else:  # simulated_or_experimental == 'experimental'
-            filename = '../Data/Sq/Experimental_Sq.sq'
 
-    data = np.loadtxt(filename, skiprows=25) if filename.endswith('.gr') or filename.endswith('.sq') else np.load(filename)
+def LoadData(simulated_or_experimental="simulated", scatteringfunction="Gr"):
+    # Set the filename based on the simulated_or_experimental and scatteringfunction variables
+    if scatteringfunction == "Gr":
+        if simulated_or_experimental == "simulated":
+            filename = ROOT_DIR / "Data" / "Gr" / "Target_PDF_benchmark.npy"
+        else:  # simulated_or_experimental == 'experimental'
+            filename = ROOT_DIR / "Data" / "Gr" / "Experimental_PDF.gr"
+    else:  # scatteringfunction == 'Sq'
+        if simulated_or_experimental == "simulated":
+            filename = ROOT_DIR / "Data" / "Sq" / "Target_Sq_benchmark.npy"
+        else:  # simulated_or_experimental == 'experimental'
+            filename = ROOT_DIR / "Data" / "Sq" / "Experimental_Sq.sq"
+
+    data = (
+        np.loadtxt(filename, skiprows=25)
+        if str(filename).endswith(".gr") or str(filename).endswith(".sq")
+        else np.load(filename)
+    )
     x_target = data[:, 0]
     Int_target = data[:, 1]
 
     return x_target, Int_target
 
-def ScatterBO_small_benchmark(params, plot=False, simulated_or_experimental='simulated', scatteringfunction='Gr'):
+
+def ScatterBO_small_benchmark(
+    params, plot=False, simulated_or_experimental="simulated", scatteringfunction="Gr"
+):
     """
     Simulate a PDF from synthesis parameters, load a target PDF, and calculate the Rwp value.
 
@@ -138,10 +170,10 @@ def ScatterBO_small_benchmark(params, plot=False, simulated_or_experimental='sim
     params (tuple): A tuple containing the following parameters:
         pH (float): The pH value, which scales the size of the structure. Range: [2, 12]
         pressure (float): The pressure value, which controls the lattice constant. Range: [15, 80]
-        solvent (int): The solvent type, which determines the structure type for small clusters. 
+        solvent (int): The solvent type, which determines the structure type for small clusters.
                         0 for 'Ethanol', 1 for 'Methanol'
     plot (bool): If True, plot the simulated and target PDFs. Default is False.
-    simulated_or_experimental (str): If 'simulated', use the filename 'Data/Gr/Target_PDF_small_benchmark.npy'. 
+    simulated_or_experimental (str): If 'simulated', use the filename 'Data/Gr/Target_PDF_small_benchmark.npy'.
                                      If 'experimental', use the filename 'T2_0p7boro_15hrs_powder.npy'. Default is 'simulated'.
     scatteringfunction (str): The scattering function to use. 'Gr' for pair distribution function, 'Sq' for structure factor. Default is 'Gr'.
 
@@ -150,22 +182,32 @@ def ScatterBO_small_benchmark(params, plot=False, simulated_or_experimental='sim
     """
     pH, pressure, solvent = params
     # Map the numerical solvent variable back to a category
-    solvent = ['Ethanol', 'Methanol'][round(solvent)]
+    solvent = ["Ethanol", "Methanol"][round(solvent)]
 
     # Check if pH is within the expected range
     if not 2 <= pH <= 12:
-        raise ValueError("Invalid pH value. Expected a value between 2 and 12, got {}".format(pH))
+        raise ValueError(
+            "Invalid pH value. Expected a value between 2 and 12, got {}".format(pH)
+        )
 
     # Check if pressure is within the expected range
     if not 15 <= pressure <= 80:
-        raise ValueError("Invalid pressure value. Expected a value between 15 and 80, got {}".format(pressure))
+        raise ValueError(
+            "Invalid pressure value. Expected a value between 15 and 80, got {}".format(
+                pressure
+            )
+        )
 
     # Check if solvent is either 0 or 1
     if solvent not in ["Ethanol", "Methanol"]:
-        raise ValueError("Invalid solvent value. Expected 0 (for 'Ethanol') or 1 (for 'Methanol'), got {}".format(solvent))
+        raise ValueError(
+            "Invalid solvent value. Expected 0 (for 'Ethanol') or 1 (for 'Methanol'), got {}".format(
+                solvent
+            )
+        )
 
     # Simulate a scattering pattern from synthesis parameters
-    cluster = generate_structure(pH, pressure, solvent, atom='Au')
+    cluster = generate_structure(pH, pressure, solvent, atom="Au")
     x_sim, Int_sim = calculate_scattering(cluster, function=scatteringfunction)
 
     # Load the target scattering data
@@ -183,13 +225,20 @@ def ScatterBO_small_benchmark(params, plot=False, simulated_or_experimental='sim
     # If plot is True, generate an interactive plot of the target and simulated scattering patterns
     if plot:
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=x_target, y=Int_target, mode='lines', name='Target PDF'))
-        fig.add_trace(go.Scatter(x=x_target, y=Int_sim_interp, mode='lines', name='Simulated PDF'))
+        fig.add_trace(
+            go.Scatter(x=x_target, y=Int_target, mode="lines", name="Target PDF")
+        )
+        fig.add_trace(
+            go.Scatter(x=x_target, y=Int_sim_interp, mode="lines", name="Simulated PDF")
+        )
         fig.show()
 
     return rwp
 
-def ScatterBO_large_benchmark(params, plot=False, simulated_or_experimental='simulated', scatteringfunction='Gr'):
+
+def ScatterBO_large_benchmark(
+    params, plot=False, simulated_or_experimental="simulated", scatteringfunction="Gr"
+):
     """
     Simulate a PDF from synthesis parameters, load a target PDF, and calculate the Rwp value.
 
@@ -197,10 +246,10 @@ def ScatterBO_large_benchmark(params, plot=False, simulated_or_experimental='sim
     params (tuple): A tuple containing the following parameters:
         pH (float): The pH value, which scales the size of the structure. Range: [0, 14]
         pressure (float): The pressure value, which controls the lattice constant. Range: [0, 100]
-        solvent (int): The solvent type, which determines the structure type for large clusters. 
+        solvent (int): The solvent type, which determines the structure type for large clusters.
                         0 for 'Ethanol', 1 for 'Methanol', 2 for 'Water', 3 for 'Others'
     plot (bool): If True, plot the simulated and target PDFs. Default is False.
-    simulated_or_experimental (str): If 'simulated', use the filename 'Data/Gr/Target_PDF_large_benchmark.npy'. 
+    simulated_or_experimental (str): If 'simulated', use the filename 'Data/Gr/Target_PDF_large_benchmark.npy'.
                                      If 'experimental', use the filename 'T2_0p7boro_15hrs_powder.npy'. Default is 'simulated'.
     scatteringfunction (str): The scattering function to use. 'Gr' for pair distribution function, 'Sq' for structure factor. Default is 'Gr'.
 
@@ -209,22 +258,32 @@ def ScatterBO_large_benchmark(params, plot=False, simulated_or_experimental='sim
     """
     pH, pressure, solvent = params
     # Map the numerical solvent variable back to a category
-    solvent = ['Ethanol', 'Methanol', 'Water', 'Others'][round(solvent)]
+    solvent = ["Ethanol", "Methanol", "Water", "Others"][round(solvent)]
 
     # Check if pH is within the expected range
     if not 0 <= pH <= 14:
-        raise ValueError("Invalid pH value. Expected a value between 0 and 14, got {}".format(pH))
+        raise ValueError(
+            "Invalid pH value. Expected a value between 0 and 14, got {}".format(pH)
+        )
 
     # Check if pressure is within the expected range
     if not 0 <= pressure <= 100:
-        raise ValueError("Invalid pressure value. Expected a value between 0 and 100, got {}".format(pressure))
+        raise ValueError(
+            "Invalid pressure value. Expected a value between 0 and 100, got {}".format(
+                pressure
+            )
+        )
 
     # Check if solvent is one of the valid options
     if solvent not in ["Ethanol", "Methanol", "Water", "Others"]:
-        raise ValueError("Invalid solvent value. Expected 0 (for 'Ethanol'), 1 (for 'Methanol'), 2 (for 'Water'), or 3 (for 'Others'), got {}".format(solvent))
+        raise ValueError(
+            "Invalid solvent value. Expected 0 (for 'Ethanol'), 1 (for 'Methanol'), 2 (for 'Water'), or 3 (for 'Others'), got {}".format(
+                solvent
+            )
+        )
 
     # Simulate a scattering pattern from synthesis parameters
-    cluster = generate_structure(pH, pressure, solvent, atom='Au')
+    cluster = generate_structure(pH, pressure, solvent, atom="Au")
     r_sim, G_sim = calculate_scattering(cluster, function=scatteringfunction)
 
     # Load the target scattering data
@@ -242,8 +301,12 @@ def ScatterBO_large_benchmark(params, plot=False, simulated_or_experimental='sim
     # If plot is True, generate an interactive plot of the target and simulated scattering patterns
     if plot:
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=x_target, y=Int_target, mode='lines', name='Target PDF'))
-        fig.add_trace(go.Scatter(x=x_target, y=Int_sim_interp, mode='lines', name='Simulated PDF'))
+        fig.add_trace(
+            go.Scatter(x=x_target, y=Int_target, mode="lines", name="Target PDF")
+        )
+        fig.add_trace(
+            go.Scatter(x=x_target, y=Int_sim_interp, mode="lines", name="Simulated PDF")
+        )
         fig.show()
 
     return rwp
