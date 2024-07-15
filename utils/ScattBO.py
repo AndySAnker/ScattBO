@@ -215,7 +215,8 @@ def calculate_loss(x_target, x_sim, Int_target, Int_sim, loss_type='rwp'):
     Int_sim = torch.tensor(Int_sim)
 
     # Interpolate the simulated intensity to the r/q values of the target scattering pattern
-    Int_sim_interp = torch.interp(x_target, x_sim, Int_sim)
+    Int_sim_interp = np.interp(x_target.numpy(), x_sim.numpy(), Int_sim.numpy())
+    Int_sim_interp = torch.tensor(Int_sim_interp)
 
     # Calculate the difference between the simulated and target scattering patterns
     diff = Int_target - Int_sim_interp
@@ -355,6 +356,158 @@ def ScatterBO_large_benchmark(
 
     # Simulate a scattering pattern from synthesis parameters
     cluster = generate_structure(pH, pressure, solvent, atom="Au")
+    x_sim, Int_sim = calculate_scattering(cluster, function=scatteringfunction)
+
+    # Load the target scattering data
+    x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
+
+    # Calculate the difference between the simulated and target scattering patterns
+    loss, Int_sim_interp = calculate_loss(x_target, x_sim, Int_target, Int_sim, loss_type)
+
+    # If plot is True, generate an interactive plot of the target and simulated scattering patterns
+    if plot:
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(x=x_target, y=Int_target, mode="lines", name="Target scattering pattern")
+        )
+        fig.add_trace(
+            go.Scatter(x=x_target, y=Int_sim_interp, mode="lines", name="Simulated scattering pattern")
+        )
+        fig.show()
+
+    return loss
+
+def generate_structure_robotic(temperature, uv, uvA, LED, pumpA_volume, pumpA_speed, pumpB_volume, pumpB_speed, 
+                               pumpC_volume, pumpC_speed, pumpD_volume, pumpD_speed, pumpE_volume, pumpE_speed,
+                               pumpF_volume, pumpF_speed, atom="Au"):
+    """
+    Generate a structure based on the given parameters.
+
+    Parameters:
+    temperature (float): The temperature in celsius, which scales the lattice constant. Range: [20, 70]
+    uv (int): 15 UV lamps, which controls the size of the structure. Range: [0, 15]
+    uvA (int): 7 UV-A lamps, which controls the size of the structure. Range: [0, 7]
+    LED (int): 7 LED lamps, which controls the size of the structure. Range: [0, 7]
+    pump[A-F]_volume (float): The volume of pump [A-F], which controls the amount of solution in vessel [A-F]. Range: [0, 5]
+    pump[A-F]_speed (float): The speed of pump [A-F], which controls the speed the solution in vessel [A-F] is added. Range: [0, 4096]
+    atom (str): The atom type. Default is 'Au'.
+
+    Returns:
+    cluster: The generated structure.
+    """
+    # Check constraints
+    if not 20 <= temperature <= 70:
+        raise ValueError("Temperature must be in the range [20, 70]")
+    if not 0 <= uv <= 15:
+        raise ValueError("UV must be in the range [0, 15]")
+    if not 0 <= uvA <= 7:
+        raise ValueError("UV-A must be in the range [0, 7]")
+    if not 0 <= LED <= 7:
+        raise ValueError("LED must be in the range [0, 7]")
+    if not all(0 <= volume <= 5 for volume in [pumpA_volume, pumpB_volume, pumpC_volume, pumpD_volume, pumpE_volume, pumpF_volume]):
+        raise ValueError("Pump volume must be in the range [0, 5] for all pumps")
+    if not all(0 <= speed <= 4096 for speed in [pumpA_speed, pumpB_speed, pumpC_speed, pumpD_speed, pumpE_speed, pumpF_speed]):
+        raise ValueError("Pump speed must be in the range [0, 4096] for all pumps")
+
+    total_volume = pumpA_volume + pumpB_volume + pumpC_volume + pumpD_volume + pumpE_volume + pumpF_volume
+    if total_volume != 5:
+        raise ValueError("The total volume of all pumps must be 5")
+
+    # Scale the size of the structure based on the number of UV lamps, UV-A lamps, and LED lamps
+    scale_factor = (3 * uv + 2 * uvA + LED) / (3 * 15 + 2 * 7 + 7)  # Normalize to range [0, 1]
+    noshells = int(scale_factor * 8) + 2  # Scale noshells from 2 to 10
+    p = q = r = noshells  # Set p, q, r to noshells
+    layers = [noshells] * 3  # Set layers to [noshells, noshells, noshells]
+    surfaces = [[1, 0, 0], [1, 1, 0], [1, 1, 1]]  # Set surfaces to [100], [110], [111]
+
+    # Control lattice constant by temperature
+    lc = (
+        2 * ((temperature - 20) / (70 - 20)) + 2.5
+    )  # Scale lattice constant from 2.5 to 4.5 based on temperature
+
+    # Determine the structure type based on the number of atoms
+    volume_per_atom = lc**3  # Volume occupied by a single atom
+    total_volume = (noshells * lc)**3  # Total volume of the structure
+    num_atoms = total_volume / volume_per_atom  # Number of atoms
+
+    if num_atoms > 2000:  # approximate 3 nm in diameter
+        if pumpA_volume < 0.5:
+            cluster = FaceCenteredCubic(atom, directions=surfaces, size=layers, latticeconstant=2 * np.sqrt(0.5 * lc ** 2))
+            cluster.structure_type = "FaceCenteredCubic"
+        elif pumpB_volume > pumpA_volume:
+            cluster = SimpleCubic(atom, directions=surfaces, size=layers, latticeconstant=lc)
+            cluster.structure_type = "SimpleCubic"
+        elif pumpC_volume > pumpB_volume:
+            cluster = BodyCenteredCubic(atom, directions=surfaces, size=layers, latticeconstant=lc)
+            cluster.structure_type = "BodyCenteredCubic"
+        else:
+            cluster = HexagonalClosedPacked(atom, latticeconstant=(lc, lc * 1.633), size=(noshells, noshells, noshells))
+            cluster.structure_type = "HexagonalClosedPacked"
+    else:
+        if pumpD_speed > 2000:
+            cluster = Icosahedron(atom, noshells, 2 * np.sqrt(0.5 * lc ** 2))
+            cluster.structure_type = "Icosahedron"
+        elif pumpE_speed < 1000:
+            cluster = Decahedron(atom, p, q, r, 2 * np.sqrt(0.5 * lc ** 2))
+            cluster.structure_type = "Decahedron"
+        elif pumpF_volume > 1:
+            cluster = BodyCenteredCubic(atom, directions=surfaces, size=layers, latticeconstant=lc)
+            cluster.structure_type = "BodyCenteredCubic"
+        else:
+            cluster = Octahedron(atom, length=noshells, latticeconstant=2 * np.sqrt(0.5 * lc ** 2))
+            cluster.structure_type = "Octahedron"
+
+    return cluster
+
+def ScatterBO_robotic_benchmark(
+    params, plot=False, simulated_or_experimental="simulated", scatteringfunction="Gr", loss_type='rwp'
+):
+    """
+    Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
+
+    Parameters:
+    params (tuple): A tuple containing the following parameters:
+        temperature (float): The temperature in celsius, which scales the lattice constant. Range: [20, 70]
+        uv (int): 15 UV lamps, which controls the size of the structure. Range: [0, 15]
+        uvA (int): 7 UV-A lamps, which controls the size of the structure. Range: [0, 7]
+        LED (int): 7 LED lamps, which controls the size of the structure. Range: [0, 7]
+        pump[A-F]_volume (float): The volume of pump [A-F], which controls the amount of solution in vessel [A-F]. Range: [0, 5]
+        pump[A-F]_speed (float): The speed of pump [A-F], which controls the speed the solution in vessel [A-F] is added. Range: [0, 4096]
+        atom (str): The atom type. Default is 'Au'.
+    plot (bool): If True, plot the simulated and target PDFs. Default is False.
+    simulated_or_experimental (str): If 'simulated', use the filename 'Data/Gr/Target_[XXXX]_benchmark.npy'.
+                                     If 'experimental', use the filename 'T2_0p7boro_15hrs_powder.npy'. Default is 'simulated'.
+    scatteringfunction (str): The scattering function to use. 'Gr' for pair distribution function, 'Sq' for structure factor, 
+                              'Iq' for intensity vs q, 'Fq' for form factor, and 'SAXS' for small-angle X-ray scattering. Default is 'Gr'.
+    loss_type (str): The type of loss to calculate. Options are 'rwp' (default), 'mae', 'mse', and 'smooth_l1'.
+
+    Returns:
+    loss (float): The loss value is a measure of the difference between the simulated and target scattering patterns.
+    """
+    temperature, uv, uvA, LED, pumpA_volume, pumpA_speed, pumpB_volume, pumpB_speed, pumpC_volume, pumpC_speed, pumpD_volume, pumpD_speed, pumpE_volume, pumpE_speed, pumpF_volume, pumpF_speed = params
+
+    # Check constraints
+    if not 20 <= temperature <= 70:
+        raise ValueError("Temperature must be in the range [20, 70]")
+    if not 0 <= uv <= 15:
+        raise ValueError("UV must be in the range [0, 15]")
+    if not 0 <= uvA <= 7:
+        raise ValueError("UV-A must be in the range [0, 7]")
+    if not 0 <= LED <= 7:
+        raise ValueError("LED must be in the range [0, 7]")
+    if not all(0 <= volume <= 5 for volume in [pumpA_volume, pumpB_volume, pumpC_volume, pumpD_volume, pumpE_volume, pumpF_volume]):
+        raise ValueError("Pump volume must be in the range [0, 5] for all pumps")
+    if not all(0 <= speed <= 4096 for speed in [pumpA_speed, pumpB_speed, pumpC_speed, pumpD_speed, pumpE_speed, pumpF_speed]):
+        raise ValueError("Pump speed must be in the range [0, 4096] for all pumps")
+
+    total_volume = pumpA_volume + pumpB_volume + pumpC_volume + pumpD_volume + pumpE_volume + pumpF_volume
+    if total_volume != 5:
+        raise ValueError("The total volume of all pumps must be 5")
+
+    # Simulate a scattering pattern from synthesis parameters
+    cluster = generate_structure_robotic(temperature, uv, uvA, LED, pumpA_volume, pumpA_speed, pumpB_volume, pumpB_speed, 
+                               pumpC_volume, pumpC_speed, pumpD_volume, pumpD_speed, pumpE_volume, pumpE_speed,
+                               pumpF_volume, pumpF_speed, atom="Au")
     x_sim, Int_sim = calculate_scattering(cluster, function=scatteringfunction)
 
     # Load the target scattering data
