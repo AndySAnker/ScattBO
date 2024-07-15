@@ -197,10 +197,15 @@ Here, we present a Python-based benchmark (ScattBO) that is an in silico simulat
 # Installation
 Ensure that you have PyTorch installed. Follow the instructions on the official PyTorch website to install the appropriate version for your system: [PyTorch Installation Guide](https://pytorch.org/get-started/locally/). 
 
-The rest of the requirements for ScattBO can be found in the [requirements.txt](https://github.com/AndySAnker/ScattBO/blob/main/requirements.txt) file and be installed with
+ScattBO is a Python package you can install locally. We recommend creating a new environment (say, with conda), and then installing it:
+
+```bash
+conda create -n scattbo python=3.10
+conda activate scattbo
+pip install -e .
 ```
-pip install -r requirements.txt
-```
+
+This command will install all requirements. Otherwise, you can find them in the [requirements.txt](https://github.com/AndySAnker/ScattBO/blob/main/requirements.txt) file.
 
 # Usage
 See (https://github.com/AndySAnker/ScattBO/tree/main/tools) for examples of single-objective optimisation with [Dragonfly](https://github.com/dragonfly/dragonfly/tree/master) or [skopt](https://scikit-optimize.github.io/stable/auto_examples/bayesian-optimization.html).
@@ -218,7 +223,7 @@ import numpy as np
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 from plotly.subplots import make_subplots
-from utils.ScattBO import generate_structure, ScatterBO_small_benchmark, ScatterBO_large_benchmark
+from ScattBO.utils import generate_structure, ScatterBO_small_benchmark, ScatterBO_large_benchmark
 
 from dragonfly import minimise_function
 

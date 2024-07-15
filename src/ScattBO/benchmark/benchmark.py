@@ -1,6 +1,6 @@
 from typing import Literal, Callable
 
-from utils.ScattBO import (
+from ScattBO.utils.ScattBO import (
     ScatterBO_large_benchmark,
     ScatterBO_small_benchmark,
 )

@@ -7,7 +7,7 @@ from debyecalculator import DebyeCalculator
 import torch
 import pickle
 import numpy as np
-from utils.ScattBO import generate_structure, ScatterBO_small_benchmark, ScatterBO_large_benchmark
+from ScattBO.utils.ScattBO import generate_structure, ScatterBO_small_benchmark, ScatterBO_large_benchmark
 from skopt import gp_minimize
 from skopt.plots import plot_convergence
 # https://scikit-optimize.github.io/stable/auto_examples/bayesian-optimization.html

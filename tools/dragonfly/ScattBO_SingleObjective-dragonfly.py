@@ -7,7 +7,7 @@ from debyecalculator import DebyeCalculator
 import torch
 import pickle
 import numpy as np
-from utils.ScattBO import generate_structure, ScatterBO_small_benchmark, ScatterBO_large_benchmark
+from ScattBO.utils.ScattBO import generate_structure, ScatterBO_small_benchmark, ScatterBO_large_benchmark
 from dragonfly import minimise_function
 
 def run_optimization(simulated_or_experimental='simulated', scatteringfunction='Gr', benchmark_size='small'):
