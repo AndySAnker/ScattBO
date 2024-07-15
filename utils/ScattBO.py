@@ -7,6 +7,7 @@ from ase.cluster.decahedron import Decahedron
 from ase.cluster.octahedron import Octahedron
 from debyecalculator import DebyeCalculator
 import torch
+import torch.nn as nn
 import numpy as np
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
@@ -14,54 +15,55 @@ from plotly.subplots import make_subplots
 
 ROOT_DIR = Path(__file__).parent.parent.resolve()
 
-
 def calculate_scattering(cluster, function="Gr"):
     """
-    Calculate a Pair Distribution Function (PDF) or Structure Factor (Sq) from a given structure.
+    Calculate a Pair Distribution Function (PDF), Structure Factor (Sq), Form Factor (Fq), Intensity (Iq), or Small Angle X-ray Scattering (SAXS) from a given structure.
 
     Parameters:
-    cluster (ase.Atoms): The atomic structure (from ASE Atoms object) to calculate the PDF or Sq from.
-    function (str): The function to calculate. 'Gr' for pair distribution function, 'Sq' for structure factor. Default is 'Gr'.
+    cluster (ase.Atoms): The atomic structure (from ASE Atoms object) to calculate the function from.
+    function (str): The function to calculate. 'Gr' for pair distribution function, 'Sq' for structure factor, 'Fq' for form factor, 'Iq' for intensity, 'SAXS' for small angle X-ray scattering. Default is 'Gr'.
 
     Returns:
-    r/q (numpy.ndarray): The r values (for PDF) or q values (for Sq) from the calculated function.
-    G/S (numpy.ndarray): The G values (for PDF) or S values (for Sq) from the calculated function.
+    r/q (numpy.ndarray): The r values (for PDF) or q values (for Sq, Fq, Iq, SAXS) from the calculated function.
+    G/S/F/I (numpy.ndarray): The G values (for PDF), S values (for Sq), F values (for Fq), I values (for Iq), or SAXS values from the calculated function.
 
     Raises:
-    AssertionError: If the function parameter is not 'Gr' or 'Sq'.
+    AssertionError: If the function parameter is not 'Gr', 'Sq', 'Fq', 'Iq', or 'SAXS'.
 
     Example:
     >>> cluster = Icosahedron('Au', noshells=7)
     >>> r, G = calculate_scattering(cluster, function='Gr')
     >>> q, S = calculate_scattering(cluster, function='Sq')
+    >>> q, F = calculate_scattering(cluster, function='Fq')
+    >>> q, I = calculate_scattering(cluster, function='Iq')
+    >>> q, SAXS = calculate_scattering(cluster, function='SAXS')
     """
     # Check if the function parameter is valid
-    assert function in ["Gr", "Sq"], "Function must be 'Gr' or 'Sq'"
+    assert function in ["Iq", "Sq", "Fq", "Gr", "SAXS"], "Function must be 'Iq', 'Sq', 'Fq', 'Gr', or 'SAXS'."
 
     # Initialise calculator object
     calc = DebyeCalculator(qmin=2, qmax=10.0, rmax=30, qstep=0.01)
+    r, Q, I, S, F, G = calc._get_all(structure_source=cluster) 
 
-    # Extract atomic symbols and positions
-    symbols = cluster.get_chemical_symbols()
-    positions = cluster.get_positions()
-
-    # Convert positions to a torch tensor
-    positions_tensor = torch.tensor(positions)
-
-    # Create a structure tuple
-    structure_tuple = (symbols, positions_tensor)
-
-    # Calculate Pair Distribution Function or Structure Factor
-    if function == "Gr":
-        r, G = calc.gr(structure_source=structure_tuple)
+    # Calculate scattering patterns
+    if function == "Iq":
+        I /= I.max()
+        return Q, I
+    elif function == "Sq":
+        S /= S.max()
+        return Q, S
+    elif function == "Fq":
+        F /= F.max()
+        return Q, F
+    elif function == "Gr":
         G /= G.max()
         return r, G
-    else:  # function == 'Sq'
-        q, S = calc.sq(structure_source=structure_tuple)
-        S /= S.max()
-        return q, S
-
-
+    elif function == "SAXS":
+        calc.update_parameters(qmin=0.01, qmax=3.0, qstep=0.01)
+        Q_sim, I_sim = calc.iq(structure_source=cluster)
+        I_sim /= I_sim.max()
+        return Q_sim, I_sim
+    
 def generate_structure(pH, pressure, solvent, atom="Au"):
     """
     Generate a structure based on the given parameters.
@@ -135,36 +137,108 @@ def generate_structure(pH, pressure, solvent, atom="Au"):
 
     return cluster
 
-
 def LoadData(simulated_or_experimental="simulated", scatteringfunction="Gr"):
+    """
+    Load scattering data from a file.
+
+    Parameters:
+    simulated_or_experimental (str): Specifies whether to load simulated or experimental data. 
+                                     Default is "simulated".
+    scatteringfunction (str): Specifies the type of scattering function. 
+                              Options are "Gr", "Sq", "Iq", "Fq", and "SAXS". Default is "Gr".
+
+    Returns:
+    x_target (numpy.ndarray): The x values from the loaded data.
+    Int_target (numpy.ndarray): The intensity values from the loaded data.
+
+    Raises:
+    ValueError: If an invalid scatteringfunction is specified.
+    """
     # Set the filename based on the simulated_or_experimental and scatteringfunction variables
     if scatteringfunction == "Gr":
         if simulated_or_experimental == "simulated":
             filename = ROOT_DIR / "Data" / "Gr" / "Target_PDF_benchmark.npy"
         else:  # simulated_or_experimental == 'experimental'
             filename = ROOT_DIR / "Data" / "Gr" / "Experimental_PDF.gr"
-    else:  # scatteringfunction == 'Sq'
+    elif scatteringfunction == 'Sq':
         if simulated_or_experimental == "simulated":
             filename = ROOT_DIR / "Data" / "Sq" / "Target_Sq_benchmark.npy"
         else:  # simulated_or_experimental == 'experimental'
             filename = ROOT_DIR / "Data" / "Sq" / "Experimental_Sq.sq"
+    elif scatteringfunction == 'Iq':
+        if simulated_or_experimental == "simulated":
+            filename = ROOT_DIR / "Data" / "Iq" / "Target_Iq_benchmark.npy"
+    elif scatteringfunction == 'Fq':
+        if simulated_or_experimental == "simulated":
+            filename = ROOT_DIR / "Data" / "Fq" / "Target_Fq_benchmark.npy"
+    elif scatteringfunction == 'SAXS':
+        if simulated_or_experimental == "simulated":
+            filename = ROOT_DIR / "Data" / "SAXS" / "Target_SAXS_benchmark.npy"
+    else:
+        raise ValueError(f"Invalid scatteringfunction: {scatteringfunction}")
 
+    # Load the data from the file
     data = (
         np.loadtxt(filename, skiprows=25)
         if str(filename).endswith(".gr") or str(filename).endswith(".sq")
         else np.load(filename)
     )
+
+    # Extract the x and intensity values from the data
     x_target = data[:, 0]
     Int_target = data[:, 1]
 
     return x_target, Int_target
 
+def calculate_loss(x_target, x_sim, Int_target, Int_sim, loss_type='rwp'):
+    """
+    Calculate the loss between the target and simulated scattering patterns.
+
+    Parameters:
+    x_target (numpy.ndarray): The x values of the target scattering pattern.
+    x_sim (numpy.ndarray): The x values of the simulated scattering pattern.
+    Int_target (numpy.ndarray): The intensity values of the target scattering pattern.
+    Int_sim (numpy.ndarray): The intensity values of the simulated scattering pattern.
+    loss_type (str): The type of loss to calculate. Options are 'rwp' (default), 'mae', 'mse', and 'smooth_l1'.
+
+    Returns:
+    loss (float): The calculated loss value.
+    Int_sim_interp (torch.Tensor): The simulated intensity values interpolated to the x values of the target scattering pattern.
+
+    Raises:
+    ValueError: If an invalid loss_type is specified.
+    """
+    # Convert numpy arrays to PyTorch tensors
+    x_target = torch.tensor(x_target)
+    x_sim = torch.tensor(x_sim)
+    Int_target = torch.tensor(Int_target)
+    Int_sim = torch.tensor(Int_sim)
+
+    # Interpolate the simulated intensity to the r/q values of the target scattering pattern
+    Int_sim_interp = torch.interp(x_target, x_sim, Int_sim)
+
+    # Calculate the difference between the simulated and target scattering patterns
+    diff = Int_target - Int_sim_interp
+
+    if loss_type == 'rwp':
+        # Calculate the goodness of fit / loss value
+        loss = torch.sqrt(torch.sum(diff**2) / torch.sum(Int_target**2))
+    elif loss_type == 'mae':
+        loss = nn.L1Loss()(Int_target, Int_sim_interp)
+    elif loss_type == 'mse':
+        loss = nn.MSELoss()(Int_target, Int_sim_interp)
+    elif loss_type == 'smooth_l1':
+        loss = nn.SmoothL1Loss()(Int_target, Int_sim_interp)
+    else:
+        raise ValueError(f"Invalid loss_type: {loss_type}")
+
+    return loss.item(), Int_sim_interp
 
 def ScatterBO_small_benchmark(
-    params, plot=False, simulated_or_experimental="simulated", scatteringfunction="Gr"
+    params, plot=False, simulated_or_experimental="simulated", scatteringfunction="Gr", loss_type='rwp'
 ):
     """
-    Simulate a PDF from synthesis parameters, load a target PDF, and calculate the Rwp value.
+    Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
 
     Parameters:
     params (tuple): A tuple containing the following parameters:
@@ -172,13 +246,15 @@ def ScatterBO_small_benchmark(
         pressure (float): The pressure value, which controls the lattice constant. Range: [15, 80]
         solvent (int): The solvent type, which determines the structure type for small clusters.
                         0 for 'Ethanol', 1 for 'Methanol'
-    plot (bool): If True, plot the simulated and target PDFs. Default is False.
-    simulated_or_experimental (str): If 'simulated', use the filename 'Data/Gr/Target_PDF_small_benchmark.npy'.
+    plot (bool): If True, plot the simulated and target scattering patterns. Default is False.
+    simulated_or_experimental (str): If 'simulated', use the filename 'Data/Gr/Target_[XXXX]_benchmark.npy'.
                                      If 'experimental', use the filename 'T2_0p7boro_15hrs_powder.npy'. Default is 'simulated'.
-    scatteringfunction (str): The scattering function to use. 'Gr' for pair distribution function, 'Sq' for structure factor. Default is 'Gr'.
+    scatteringfunction (str): The scattering function to use. 'Gr' for pair distribution function, 'Sq' for structure factor, 
+                              'Iq' for intensity vs q, 'Fq' for form factor, and 'SAXS' for small-angle X-ray scattering. Default is 'Gr'.
+    loss_type (str): The type of loss to calculate. Options are 'rwp' (default), 'mae', 'mse', and 'smooth_l1'.
 
     Returns:
-    rwp (float): The Rwp value, which is a measure of the difference between the simulated and target PDFs.
+    loss (float): The loss value is a measure of the difference between the simulated and target scattering patterns.
     """
     pH, pressure, solvent = params
     # Map the numerical solvent variable back to a category
@@ -213,34 +289,27 @@ def ScatterBO_small_benchmark(
     # Load the target scattering data
     x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
 
-    # Interpolate the simulated intensity to the r/q values of the target scattering pattern
-    Int_sim_interp = np.interp(x_target, x_sim, Int_sim)
-
     # Calculate the difference between the simulated and target scattering patterns
-    diff = Int_target - Int_sim_interp
-
-    # Calculate the Rwp value
-    rwp = np.sqrt(np.sum(diff**2) / np.sum(Int_target**2))
+    loss, Int_sim_interp = calculate_loss(x_target, x_sim, Int_target, Int_sim, loss_type)
 
     # If plot is True, generate an interactive plot of the target and simulated scattering patterns
     if plot:
         fig = go.Figure()
         fig.add_trace(
-            go.Scatter(x=x_target, y=Int_target, mode="lines", name="Target PDF")
+            go.Scatter(x=x_target, y=Int_target, mode="lines", name="Target scattering pattern")
         )
         fig.add_trace(
-            go.Scatter(x=x_target, y=Int_sim_interp, mode="lines", name="Simulated PDF")
+            go.Scatter(x=x_target, y=Int_sim_interp, mode="lines", name="Simulated scattering pattern")
         )
         fig.show()
 
-    return rwp
-
+    return loss
 
 def ScatterBO_large_benchmark(
-    params, plot=False, simulated_or_experimental="simulated", scatteringfunction="Gr"
+    params, plot=False, simulated_or_experimental="simulated", scatteringfunction="Gr", loss_type='rwp'
 ):
     """
-    Simulate a PDF from synthesis parameters, load a target PDF, and calculate the Rwp value.
+    Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
 
     Parameters:
     params (tuple): A tuple containing the following parameters:
@@ -249,12 +318,14 @@ def ScatterBO_large_benchmark(
         solvent (int): The solvent type, which determines the structure type for large clusters.
                         0 for 'Ethanol', 1 for 'Methanol', 2 for 'Water', 3 for 'Others'
     plot (bool): If True, plot the simulated and target PDFs. Default is False.
-    simulated_or_experimental (str): If 'simulated', use the filename 'Data/Gr/Target_PDF_large_benchmark.npy'.
+    simulated_or_experimental (str): If 'simulated', use the filename 'Data/Gr/Target_[XXXX]_benchmark.npy'.
                                      If 'experimental', use the filename 'T2_0p7boro_15hrs_powder.npy'. Default is 'simulated'.
-    scatteringfunction (str): The scattering function to use. 'Gr' for pair distribution function, 'Sq' for structure factor. Default is 'Gr'.
+    scatteringfunction (str): The scattering function to use. 'Gr' for pair distribution function, 'Sq' for structure factor, 
+                              'Iq' for intensity vs q, 'Fq' for form factor, and 'SAXS' for small-angle X-ray scattering. Default is 'Gr'.
+    loss_type (str): The type of loss to calculate. Options are 'rwp' (default), 'mae', 'mse', and 'smooth_l1'.
 
     Returns:
-    rwp (float): The Rwp value, which is a measure of the difference between the simulated and target PDFs.
+    loss (float): The loss value is a measure of the difference between the simulated and target scattering patterns.
     """
     pH, pressure, solvent = params
     # Map the numerical solvent variable back to a category
@@ -284,29 +355,23 @@ def ScatterBO_large_benchmark(
 
     # Simulate a scattering pattern from synthesis parameters
     cluster = generate_structure(pH, pressure, solvent, atom="Au")
-    r_sim, G_sim = calculate_scattering(cluster, function=scatteringfunction)
+    x_sim, Int_sim = calculate_scattering(cluster, function=scatteringfunction)
 
     # Load the target scattering data
     x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
 
-    # Interpolate the simulated scattering pattern to the r/q values of the target scattering pattern
-    Int_sim_interp = np.interp(x_target, r_sim, G_sim)
-
     # Calculate the difference between the simulated and target scattering patterns
-    diff = Int_target - Int_sim_interp
-
-    # Calculate the Rwp value
-    rwp = np.sqrt(np.sum(diff**2) / np.sum(Int_target**2))
+    loss, Int_sim_interp = calculate_loss(x_target, x_sim, Int_target, Int_sim, loss_type)
 
     # If plot is True, generate an interactive plot of the target and simulated scattering patterns
     if plot:
         fig = go.Figure()
         fig.add_trace(
-            go.Scatter(x=x_target, y=Int_target, mode="lines", name="Target PDF")
+            go.Scatter(x=x_target, y=Int_target, mode="lines", name="Target scattering pattern")
         )
         fig.add_trace(
-            go.Scatter(x=x_target, y=Int_sim_interp, mode="lines", name="Simulated PDF")
+            go.Scatter(x=x_target, y=Int_sim_interp, mode="lines", name="Simulated scattering pattern")
         )
         fig.show()
 
-    return rwp
+    return loss
