@@ -11,7 +11,7 @@ import torch
 import botorch
 import pandas as pd
 
-from benchmark import Benchmark
+from ScattBO.benchmark.benchmark import Benchmark
 
 fn = Benchmark("small", "Gr", "simulated")
 

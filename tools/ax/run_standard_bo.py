@@ -18,7 +18,7 @@ from ax.modelbridge.registry import Models
 from ax.models.torch.botorch_modular.surrogate import Surrogate
 from ax.service.ax_client import AxClient, ObjectiveProperties
 
-from benchmark import Benchmark
+from ScattBO.benchmark.benchmark import Benchmark
 
 generation_strategy = GenerationStrategy(
     steps=[

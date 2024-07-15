@@ -7,7 +7,7 @@ import numpy as np
 
 from ax.service.managed_loop import optimize
 
-from benchmark import Benchmark
+from ScattBO.benchmark.benchmark import Benchmark
 
 # One example:
 

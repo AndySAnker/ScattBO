@@ -13,7 +13,8 @@ import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 from plotly.subplots import make_subplots
 
-ROOT_DIR = Path(__file__).parent.parent.resolve()
+ROOT_DIR = Path(__file__).parent.parent.parent.parent.resolve()
+
 
 def calculate_scattering(cluster, function="Gr"):
     """
@@ -39,11 +40,17 @@ def calculate_scattering(cluster, function="Gr"):
     >>> q, SAXS = calculate_scattering(cluster, function='SAXS')
     """
     # Check if the function parameter is valid
-    assert function in ["Iq", "Sq", "Fq", "Gr", "SAXS"], "Function must be 'Iq', 'Sq', 'Fq', 'Gr', or 'SAXS'."
+    assert function in [
+        "Iq",
+        "Sq",
+        "Fq",
+        "Gr",
+        "SAXS",
+    ], "Function must be 'Iq', 'Sq', 'Fq', 'Gr', or 'SAXS'."
 
     # Initialise calculator object
     calc = DebyeCalculator(qmin=2, qmax=10.0, rmax=30, qstep=0.01)
-    r, Q, I, S, F, G = calc._get_all(structure_source=cluster) 
+    r, Q, I, S, F, G = calc._get_all(structure_source=cluster)
 
     # Calculate scattering patterns
     if function == "Iq":
@@ -63,7 +70,8 @@ def calculate_scattering(cluster, function="Gr"):
         Q_sim, I_sim = calc.iq(structure_source=cluster)
         I_sim /= I_sim.max()
         return Q_sim, I_sim
-    
+
+
 def generate_structure(pH, pressure, solvent, atom="Au"):
     """
     Generate a structure based on the given parameters.
@@ -137,14 +145,15 @@ def generate_structure(pH, pressure, solvent, atom="Au"):
 
     return cluster
 
+
 def LoadData(simulated_or_experimental="simulated", scatteringfunction="Gr"):
     """
     Load scattering data from a file.
 
     Parameters:
-    simulated_or_experimental (str): Specifies whether to load simulated or experimental data. 
+    simulated_or_experimental (str): Specifies whether to load simulated or experimental data.
                                      Default is "simulated".
-    scatteringfunction (str): Specifies the type of scattering function. 
+    scatteringfunction (str): Specifies the type of scattering function.
                               Options are "Gr", "Sq", "Iq", "Fq", and "SAXS". Default is "Gr".
 
     Returns:
@@ -160,18 +169,18 @@ def LoadData(simulated_or_experimental="simulated", scatteringfunction="Gr"):
             filename = ROOT_DIR / "Data" / "Gr" / "Target_PDF_benchmark.npy"
         else:  # simulated_or_experimental == 'experimental'
             filename = ROOT_DIR / "Data" / "Gr" / "Experimental_PDF.gr"
-    elif scatteringfunction == 'Sq':
+    elif scatteringfunction == "Sq":
         if simulated_or_experimental == "simulated":
             filename = ROOT_DIR / "Data" / "Sq" / "Target_Sq_benchmark.npy"
         else:  # simulated_or_experimental == 'experimental'
             filename = ROOT_DIR / "Data" / "Sq" / "Experimental_Sq.sq"
-    elif scatteringfunction == 'Iq':
+    elif scatteringfunction == "Iq":
         if simulated_or_experimental == "simulated":
             filename = ROOT_DIR / "Data" / "Iq" / "Target_Iq_benchmark.npy"
-    elif scatteringfunction == 'Fq':
+    elif scatteringfunction == "Fq":
         if simulated_or_experimental == "simulated":
             filename = ROOT_DIR / "Data" / "Fq" / "Target_Fq_benchmark.npy"
-    elif scatteringfunction == 'SAXS':
+    elif scatteringfunction == "SAXS":
         if simulated_or_experimental == "simulated":
             filename = ROOT_DIR / "Data" / "SAXS" / "Target_SAXS_benchmark.npy"
     else:
@@ -190,7 +199,8 @@ def LoadData(simulated_or_experimental="simulated", scatteringfunction="Gr"):
 
     return x_target, Int_target
 
-def calculate_loss(x_target, x_sim, Int_target, Int_sim, loss_type='rwp'):
+
+def calculate_loss(x_target, x_sim, Int_target, Int_sim, loss_type="rwp"):
     """
     Calculate the loss between the target and simulated scattering patterns.
 
@@ -221,22 +231,27 @@ def calculate_loss(x_target, x_sim, Int_target, Int_sim, loss_type='rwp'):
     # Calculate the difference between the simulated and target scattering patterns
     diff = Int_target - Int_sim_interp
 
-    if loss_type == 'rwp':
+    if loss_type == "rwp":
         # Calculate the goodness of fit / loss value
         loss = torch.sqrt(torch.sum(diff**2) / torch.sum(Int_target**2))
-    elif loss_type == 'mae':
+    elif loss_type == "mae":
         loss = nn.L1Loss()(Int_target, Int_sim_interp)
-    elif loss_type == 'mse':
+    elif loss_type == "mse":
         loss = nn.MSELoss()(Int_target, Int_sim_interp)
-    elif loss_type == 'smooth_l1':
+    elif loss_type == "smooth_l1":
         loss = nn.SmoothL1Loss()(Int_target, Int_sim_interp)
     else:
         raise ValueError(f"Invalid loss_type: {loss_type}")
 
     return loss.item(), Int_sim_interp
 
+
 def ScatterBO_small_benchmark(
-    params, plot=False, simulated_or_experimental="simulated", scatteringfunction="Gr", loss_type='rwp'
+    params,
+    plot=False,
+    simulated_or_experimental="simulated",
+    scatteringfunction="Gr",
+    loss_type="rwp",
 ):
     """
     Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
@@ -250,7 +265,7 @@ def ScatterBO_small_benchmark(
     plot (bool): If True, plot the simulated and target scattering patterns. Default is False.
     simulated_or_experimental (str): If 'simulated', use the filename 'Data/Gr/Target_[XXXX]_benchmark.npy'.
                                      If 'experimental', use the filename 'T2_0p7boro_15hrs_powder.npy'. Default is 'simulated'.
-    scatteringfunction (str): The scattering function to use. 'Gr' for pair distribution function, 'Sq' for structure factor, 
+    scatteringfunction (str): The scattering function to use. 'Gr' for pair distribution function, 'Sq' for structure factor,
                               'Iq' for intensity vs q, 'Fq' for form factor, and 'SAXS' for small-angle X-ray scattering. Default is 'Gr'.
     loss_type (str): The type of loss to calculate. Options are 'rwp' (default), 'mae', 'mse', and 'smooth_l1'.
 
@@ -291,23 +306,37 @@ def ScatterBO_small_benchmark(
     x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
 
     # Calculate the difference between the simulated and target scattering patterns
-    loss, Int_sim_interp = calculate_loss(x_target, x_sim, Int_target, Int_sim, loss_type)
+    loss, Int_sim_interp = calculate_loss(
+        x_target, x_sim, Int_target, Int_sim, loss_type
+    )
 
     # If plot is True, generate an interactive plot of the target and simulated scattering patterns
     if plot:
         fig = go.Figure()
         fig.add_trace(
-            go.Scatter(x=x_target, y=Int_target, mode="lines", name="Target scattering pattern")
+            go.Scatter(
+                x=x_target, y=Int_target, mode="lines", name="Target scattering pattern"
+            )
         )
         fig.add_trace(
-            go.Scatter(x=x_target, y=Int_sim_interp, mode="lines", name="Simulated scattering pattern")
+            go.Scatter(
+                x=x_target,
+                y=Int_sim_interp,
+                mode="lines",
+                name="Simulated scattering pattern",
+            )
         )
         fig.show()
 
     return loss
 
+
 def ScatterBO_large_benchmark(
-    params, plot=False, simulated_or_experimental="simulated", scatteringfunction="Gr", loss_type='rwp'
+    params,
+    plot=False,
+    simulated_or_experimental="simulated",
+    scatteringfunction="Gr",
+    loss_type="rwp",
 ):
     """
     Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
@@ -321,7 +350,7 @@ def ScatterBO_large_benchmark(
     plot (bool): If True, plot the simulated and target PDFs. Default is False.
     simulated_or_experimental (str): If 'simulated', use the filename 'Data/Gr/Target_[XXXX]_benchmark.npy'.
                                      If 'experimental', use the filename 'T2_0p7boro_15hrs_powder.npy'. Default is 'simulated'.
-    scatteringfunction (str): The scattering function to use. 'Gr' for pair distribution function, 'Sq' for structure factor, 
+    scatteringfunction (str): The scattering function to use. 'Gr' for pair distribution function, 'Sq' for structure factor,
                               'Iq' for intensity vs q, 'Fq' for form factor, and 'SAXS' for small-angle X-ray scattering. Default is 'Gr'.
     loss_type (str): The type of loss to calculate. Options are 'rwp' (default), 'mae', 'mse', and 'smooth_l1'.
 
@@ -362,24 +391,50 @@ def ScatterBO_large_benchmark(
     x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
 
     # Calculate the difference between the simulated and target scattering patterns
-    loss, Int_sim_interp = calculate_loss(x_target, x_sim, Int_target, Int_sim, loss_type)
+    loss, Int_sim_interp = calculate_loss(
+        x_target, x_sim, Int_target, Int_sim, loss_type
+    )
 
     # If plot is True, generate an interactive plot of the target and simulated scattering patterns
     if plot:
         fig = go.Figure()
         fig.add_trace(
-            go.Scatter(x=x_target, y=Int_target, mode="lines", name="Target scattering pattern")
+            go.Scatter(
+                x=x_target, y=Int_target, mode="lines", name="Target scattering pattern"
+            )
         )
         fig.add_trace(
-            go.Scatter(x=x_target, y=Int_sim_interp, mode="lines", name="Simulated scattering pattern")
+            go.Scatter(
+                x=x_target,
+                y=Int_sim_interp,
+                mode="lines",
+                name="Simulated scattering pattern",
+            )
         )
         fig.show()
 
     return loss
 
-def generate_structure_robotic(temperature, uv, uvA, LED, pumpA_volume, pumpA_speed, pumpB_volume, pumpB_speed, 
-                               pumpC_volume, pumpC_speed, pumpD_volume, pumpD_speed, pumpE_volume, pumpE_speed,
-                               pumpF_volume, pumpF_speed, atom="Au"):
+
+def generate_structure_robotic(
+    temperature,
+    uv,
+    uvA,
+    LED,
+    pumpA_volume,
+    pumpA_speed,
+    pumpB_volume,
+    pumpB_speed,
+    pumpC_volume,
+    pumpC_speed,
+    pumpD_volume,
+    pumpD_speed,
+    pumpE_volume,
+    pumpE_speed,
+    pumpF_volume,
+    pumpF_speed,
+    atom="Au",
+):
     """
     Generate a structure based on the given parameters.
 
@@ -404,17 +459,46 @@ def generate_structure_robotic(temperature, uv, uvA, LED, pumpA_volume, pumpA_sp
         raise ValueError("UV-A must be in the range [0, 7]")
     if not 0 <= LED <= 7:
         raise ValueError("LED must be in the range [0, 7]")
-    if not all(0 <= volume <= 5 for volume in [pumpA_volume, pumpB_volume, pumpC_volume, pumpD_volume, pumpE_volume, pumpF_volume]):
+    if not all(
+        0 <= volume <= 5
+        for volume in [
+            pumpA_volume,
+            pumpB_volume,
+            pumpC_volume,
+            pumpD_volume,
+            pumpE_volume,
+            pumpF_volume,
+        ]
+    ):
         raise ValueError("Pump volume must be in the range [0, 5] for all pumps")
-    if not all(0 <= speed <= 4096 for speed in [pumpA_speed, pumpB_speed, pumpC_speed, pumpD_speed, pumpE_speed, pumpF_speed]):
+    if not all(
+        0 <= speed <= 4096
+        for speed in [
+            pumpA_speed,
+            pumpB_speed,
+            pumpC_speed,
+            pumpD_speed,
+            pumpE_speed,
+            pumpF_speed,
+        ]
+    ):
         raise ValueError("Pump speed must be in the range [0, 4096] for all pumps")
 
-    total_volume = pumpA_volume + pumpB_volume + pumpC_volume + pumpD_volume + pumpE_volume + pumpF_volume
+    total_volume = (
+        pumpA_volume
+        + pumpB_volume
+        + pumpC_volume
+        + pumpD_volume
+        + pumpE_volume
+        + pumpF_volume
+    )
     if total_volume != 5:
         raise ValueError("The total volume of all pumps must be 5")
 
     # Scale the size of the structure based on the number of UV lamps, UV-A lamps, and LED lamps
-    scale_factor = (3 * uv + 2 * uvA + LED) / (3 * 15 + 2 * 7 + 7)  # Normalize to range [0, 1]
+    scale_factor = (3 * uv + 2 * uvA + LED) / (
+        3 * 15 + 2 * 7 + 7
+    )  # Normalize to range [0, 1]
     noshells = int(scale_factor * 8) + 2  # Scale noshells from 2 to 10
     p = q = r = noshells  # Set p, q, r to noshells
     layers = [noshells] * 3  # Set layers to [noshells, noshells, noshells]
@@ -427,40 +511,62 @@ def generate_structure_robotic(temperature, uv, uvA, LED, pumpA_volume, pumpA_sp
 
     # Determine the structure type based on the number of atoms
     volume_per_atom = lc**3  # Volume occupied by a single atom
-    total_volume = (noshells * lc)**3  # Total volume of the structure
+    total_volume = (noshells * lc) ** 3  # Total volume of the structure
     num_atoms = total_volume / volume_per_atom  # Number of atoms
 
     if num_atoms > 2000:  # approximate 3 nm in diameter
         if pumpA_volume < 0.5:
-            cluster = FaceCenteredCubic(atom, directions=surfaces, size=layers, latticeconstant=2 * np.sqrt(0.5 * lc ** 2))
+            cluster = FaceCenteredCubic(
+                atom,
+                directions=surfaces,
+                size=layers,
+                latticeconstant=2 * np.sqrt(0.5 * lc**2),
+            )
             cluster.structure_type = "FaceCenteredCubic"
         elif pumpB_volume > pumpA_volume:
-            cluster = SimpleCubic(atom, directions=surfaces, size=layers, latticeconstant=lc)
+            cluster = SimpleCubic(
+                atom, directions=surfaces, size=layers, latticeconstant=lc
+            )
             cluster.structure_type = "SimpleCubic"
         elif pumpC_volume > pumpB_volume:
-            cluster = BodyCenteredCubic(atom, directions=surfaces, size=layers, latticeconstant=lc)
+            cluster = BodyCenteredCubic(
+                atom, directions=surfaces, size=layers, latticeconstant=lc
+            )
             cluster.structure_type = "BodyCenteredCubic"
         else:
-            cluster = HexagonalClosedPacked(atom, latticeconstant=(lc, lc * 1.633), size=(noshells, noshells, noshells))
+            cluster = HexagonalClosedPacked(
+                atom,
+                latticeconstant=(lc, lc * 1.633),
+                size=(noshells, noshells, noshells),
+            )
             cluster.structure_type = "HexagonalClosedPacked"
     else:
         if pumpD_speed > 2000:
-            cluster = Icosahedron(atom, noshells, 2 * np.sqrt(0.5 * lc ** 2))
+            cluster = Icosahedron(atom, noshells, 2 * np.sqrt(0.5 * lc**2))
             cluster.structure_type = "Icosahedron"
         elif pumpE_speed < 1000:
-            cluster = Decahedron(atom, p, q, r, 2 * np.sqrt(0.5 * lc ** 2))
+            cluster = Decahedron(atom, p, q, r, 2 * np.sqrt(0.5 * lc**2))
             cluster.structure_type = "Decahedron"
         elif pumpF_volume > 1:
-            cluster = BodyCenteredCubic(atom, directions=surfaces, size=layers, latticeconstant=lc)
+            cluster = BodyCenteredCubic(
+                atom, directions=surfaces, size=layers, latticeconstant=lc
+            )
             cluster.structure_type = "BodyCenteredCubic"
         else:
-            cluster = Octahedron(atom, length=noshells, latticeconstant=2 * np.sqrt(0.5 * lc ** 2))
+            cluster = Octahedron(
+                atom, length=noshells, latticeconstant=2 * np.sqrt(0.5 * lc**2)
+            )
             cluster.structure_type = "Octahedron"
 
     return cluster
 
+
 def ScatterBO_robotic_benchmark(
-    params, plot=False, simulated_or_experimental="simulated", scatteringfunction="Gr", loss_type='rwp'
+    params,
+    plot=False,
+    simulated_or_experimental="simulated",
+    scatteringfunction="Gr",
+    loss_type="rwp",
 ):
     """
     Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
@@ -477,14 +583,31 @@ def ScatterBO_robotic_benchmark(
     plot (bool): If True, plot the simulated and target PDFs. Default is False.
     simulated_or_experimental (str): If 'simulated', use the filename 'Data/Gr/Target_[XXXX]_benchmark.npy'.
                                      If 'experimental', use the filename 'T2_0p7boro_15hrs_powder.npy'. Default is 'simulated'.
-    scatteringfunction (str): The scattering function to use. 'Gr' for pair distribution function, 'Sq' for structure factor, 
+    scatteringfunction (str): The scattering function to use. 'Gr' for pair distribution function, 'Sq' for structure factor,
                               'Iq' for intensity vs q, 'Fq' for form factor, and 'SAXS' for small-angle X-ray scattering. Default is 'Gr'.
     loss_type (str): The type of loss to calculate. Options are 'rwp' (default), 'mae', 'mse', and 'smooth_l1'.
 
     Returns:
     loss (float): The loss value is a measure of the difference between the simulated and target scattering patterns.
     """
-    temperature, uv, uvA, LED, pumpA_volume, pumpA_speed, pumpB_volume, pumpB_speed, pumpC_volume, pumpC_speed, pumpD_volume, pumpD_speed, pumpE_volume, pumpE_speed, pumpF_volume, pumpF_speed = params
+    (
+        temperature,
+        uv,
+        uvA,
+        LED,
+        pumpA_volume,
+        pumpA_speed,
+        pumpB_volume,
+        pumpB_speed,
+        pumpC_volume,
+        pumpC_speed,
+        pumpD_volume,
+        pumpD_speed,
+        pumpE_volume,
+        pumpE_speed,
+        pumpF_volume,
+        pumpF_speed,
+    ) = params
 
     # Check constraints
     if not 20 <= temperature <= 70:
@@ -495,36 +618,92 @@ def ScatterBO_robotic_benchmark(
         raise ValueError("UV-A must be in the range [0, 7]")
     if not 0 <= LED <= 7:
         raise ValueError("LED must be in the range [0, 7]")
-    if not all(0 <= volume <= 5 for volume in [pumpA_volume, pumpB_volume, pumpC_volume, pumpD_volume, pumpE_volume, pumpF_volume]):
+    if not all(
+        0 <= volume <= 5
+        for volume in [
+            pumpA_volume,
+            pumpB_volume,
+            pumpC_volume,
+            pumpD_volume,
+            pumpE_volume,
+            pumpF_volume,
+        ]
+    ):
         raise ValueError("Pump volume must be in the range [0, 5] for all pumps")
-    if not all(0 <= speed <= 4096 for speed in [pumpA_speed, pumpB_speed, pumpC_speed, pumpD_speed, pumpE_speed, pumpF_speed]):
+    if not all(
+        0 <= speed <= 4096
+        for speed in [
+            pumpA_speed,
+            pumpB_speed,
+            pumpC_speed,
+            pumpD_speed,
+            pumpE_speed,
+            pumpF_speed,
+        ]
+    ):
         raise ValueError("Pump speed must be in the range [0, 4096] for all pumps")
 
-    total_volume = pumpA_volume + pumpB_volume + pumpC_volume + pumpD_volume + pumpE_volume + pumpF_volume
+    total_volume = (
+        pumpA_volume
+        + pumpB_volume
+        + pumpC_volume
+        + pumpD_volume
+        + pumpE_volume
+        + pumpF_volume
+    )
     if total_volume != 5:
         raise ValueError("The total volume of all pumps must be 5")
 
     # Simulate a scattering pattern from synthesis parameters
-    cluster = generate_structure_robotic(temperature, uv, uvA, LED, pumpA_volume, pumpA_speed, pumpB_volume, pumpB_speed, 
-                               pumpC_volume, pumpC_speed, pumpD_volume, pumpD_speed, pumpE_volume, pumpE_speed,
-                               pumpF_volume, pumpF_speed, atom="Au")
+    cluster = generate_structure_robotic(
+        temperature,
+        uv,
+        uvA,
+        LED,
+        pumpA_volume,
+        pumpA_speed,
+        pumpB_volume,
+        pumpB_speed,
+        pumpC_volume,
+        pumpC_speed,
+        pumpD_volume,
+        pumpD_speed,
+        pumpE_volume,
+        pumpE_speed,
+        pumpF_volume,
+        pumpF_speed,
+        atom="Au",
+    )
     x_sim, Int_sim = calculate_scattering(cluster, function=scatteringfunction)
 
     # Load the target scattering data
     x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
 
     # Calculate the difference between the simulated and target scattering patterns
-    loss, Int_sim_interp = calculate_loss(x_target, x_sim, Int_target, Int_sim, loss_type)
+    loss, Int_sim_interp = calculate_loss(
+        x_target, x_sim, Int_target, Int_sim, loss_type
+    )
 
     # If plot is True, generate an interactive plot of the target and simulated scattering patterns
     if plot:
         fig = go.Figure()
         fig.add_trace(
-            go.Scatter(x=x_target, y=Int_target, mode="lines", name="Target scattering pattern")
+            go.Scatter(
+                x=x_target, y=Int_target, mode="lines", name="Target scattering pattern"
+            )
         )
         fig.add_trace(
-            go.Scatter(x=x_target, y=Int_sim_interp, mode="lines", name="Simulated scattering pattern")
+            go.Scatter(
+                x=x_target,
+                y=Int_sim_interp,
+                mode="lines",
+                name="Simulated scattering pattern",
+            )
         )
         fig.show()
 
     return loss
+
+
+if __name__ == "__main__":
+    LoadData()
