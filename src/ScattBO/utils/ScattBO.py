@@ -23,6 +23,15 @@ def calculate_scattering(cluster, function="Gr", qmin=2, qmax=10.0, qstep=0.01, 
     Parameters:
     cluster (ase.Atoms): The atomic structure (from ASE Atoms object) to calculate the function from.
     function (str): The function to calculate. 'Gr' for pair distribution function, 'Sq' for structure factor, 'Fq' for form factor, 'Iq' for intensity, 'SAXS' for small angle X-ray scattering. Default is 'Gr'.
+    qmin (float): The minimum q value for the scattering pattern calculation. Default is 2.
+    qmax (float): The maximum q value for the scattering pattern calculation. Default is 10.0.
+    qstep (float): The step size for q values. Default is 0.01.
+    qmin_SAXS (float): The minimum q value for SAXS pattern calculations. Default is 0.01.
+    qmax_SAXS (float): The maximum q value for SAXS pattern calculations. Default is 3.0.
+    qstep_SAXS (float): The step size for q values in SAXS. Default is 0.01.
+    rmin (float): The minimum r value for the Gr pattern calculations. Default is 0.
+    rmax (float): The maximum r value for the Gr pattern calculations. Default is 30.
+    rstep (float): The step size for r values in Gr. Default is 0.1.
 
     Returns:
     r/q (numpy.ndarray): The r values (for PDF) or q values (for Sq, Fq, Iq, SAXS) from the calculated function.
@@ -252,6 +261,15 @@ def ScatterBO_small_benchmark(
     simulated_or_experimental="simulated",
     scatteringfunction="Gr",
     loss_type="rwp",
+    qmin=2,
+    qmax=10.0,
+    qstep=0.01,
+    rmin=0,
+    rmax=30,
+    rstep=0.1,
+    qmin_SAXS=0.01,
+    qmax_SAXS=3.0,
+    qstep_SAXS=0.01,
 ):
     """
     Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
@@ -268,6 +286,15 @@ def ScatterBO_small_benchmark(
     scatteringfunction (str): The scattering function to use. 'Gr' for pair distribution function, 'Sq' for structure factor,
                               'Iq' for intensity vs q, 'Fq' for form factor, and 'SAXS' for small-angle X-ray scattering. Default is 'Gr'.
     loss_type (str): The type of loss to calculate. Options are 'rwp' (default), 'mae', 'mse', and 'smooth_l1'.
+    qmin (float): The minimum q value for the scattering pattern calculation. Default is 2.
+    qmax (float): The maximum q value for the scattering pattern calculation. Default is 10.0.
+    qstep (float): The step size for q values. Default is 0.01.
+    qmin_SAXS (float): The minimum q value for SAXS pattern calculations. Default is 0.01.
+    qmax_SAXS (float): The maximum q value for SAXS pattern calculations. Default is 3.0.
+    qstep_SAXS (float): The step size for q values in SAXS. Default is 0.01.
+    rmin (float): The minimum r value for the Gr pattern calculations. Default is 0.
+    rmax (float): The maximum r value for the Gr pattern calculations. Default is 30.
+    rstep (float): The step size for r values in Gr. Default is 0.1.
 
     Returns:
     loss (float): The loss value is a measure of the difference between the simulated and target scattering patterns.
@@ -300,7 +327,7 @@ def ScatterBO_small_benchmark(
 
     # Simulate a scattering pattern from synthesis parameters
     cluster = generate_structure(pH, pressure, solvent, atom="Au")
-    x_sim, Int_sim = calculate_scattering(cluster, function=scatteringfunction)
+    x_sim, Int_sim = calculate_scattering(cluster, function=scatteringfunction, qmin=qmin, qmax=qmax, qstep=qstep, rmin=rmin, rmax=rmax, rstep=rstep, qmin_SAXS=qmin_SAXS, qmax_SAXS=qmax_SAXS, qstep_SAXS=qstep_SAXS)
 
     # Load the target scattering data
     x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
@@ -337,6 +364,15 @@ def ScatterBO_large_benchmark(
     simulated_or_experimental="simulated",
     scatteringfunction="Gr",
     loss_type="rwp",
+    qmin=2,
+    qmax=10.0,
+    qstep=0.01,
+    rmin=0,
+    rmax=30,
+    rstep=0.1,
+    qmin_SAXS=0.01,
+    qmax_SAXS=3.0,
+    qstep_SAXS=0.01,
 ):
     """
     Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
@@ -353,6 +389,15 @@ def ScatterBO_large_benchmark(
     scatteringfunction (str): The scattering function to use. 'Gr' for pair distribution function, 'Sq' for structure factor,
                               'Iq' for intensity vs q, 'Fq' for form factor, and 'SAXS' for small-angle X-ray scattering. Default is 'Gr'.
     loss_type (str): The type of loss to calculate. Options are 'rwp' (default), 'mae', 'mse', and 'smooth_l1'.
+    qmin (float): The minimum q value for the scattering pattern calculation. Default is 2.
+    qmax (float): The maximum q value for the scattering pattern calculation. Default is 10.0.
+    qstep (float): The step size for q values. Default is 0.01.
+    qmin_SAXS (float): The minimum q value for SAXS pattern calculations. Default is 0.01.
+    qmax_SAXS (float): The maximum q value for SAXS pattern calculations. Default is 3.0.
+    qstep_SAXS (float): The step size for q values in SAXS. Default is 0.01.
+    rmin (float): The minimum r value for the Gr pattern calculations. Default is 0.
+    rmax (float): The maximum r value for the Gr pattern calculations. Default is 30.
+    rstep (float): The step size for r values in Gr. Default is 0.1.
 
     Returns:
     loss (float): The loss value is a measure of the difference between the simulated and target scattering patterns.
@@ -385,7 +430,7 @@ def ScatterBO_large_benchmark(
 
     # Simulate a scattering pattern from synthesis parameters
     cluster = generate_structure(pH, pressure, solvent, atom="Au")
-    x_sim, Int_sim = calculate_scattering(cluster, function=scatteringfunction)
+    x_sim, Int_sim = calculate_scattering(cluster, function=scatteringfunction, qmin=qmin, qmax=qmax, qstep=qstep, rmin=rmin, rmax=rmax, rstep=rstep, qmin_SAXS=qmin_SAXS, qmax_SAXS=qmax_SAXS, qstep_SAXS=qstep_SAXS)
 
     # Load the target scattering data
     x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
@@ -567,6 +612,15 @@ def ScatterBO_robotic_benchmark(
     simulated_or_experimental="simulated",
     scatteringfunction="Gr",
     loss_type="rwp",
+    qmin=2,
+    qmax=10.0,
+    qstep=0.01,
+    rmin=0,
+    rmax=30,
+    rstep=0.1,
+    qmin_SAXS=0.01,
+    qmax_SAXS=3.0,
+    qstep_SAXS=0.01,
 ):
     """
     Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
@@ -586,6 +640,15 @@ def ScatterBO_robotic_benchmark(
     scatteringfunction (str): The scattering function to use. 'Gr' for pair distribution function, 'Sq' for structure factor,
                               'Iq' for intensity vs q, 'Fq' for form factor, and 'SAXS' for small-angle X-ray scattering. Default is 'Gr'.
     loss_type (str): The type of loss to calculate. Options are 'rwp' (default), 'mae', 'mse', and 'smooth_l1'.
+    qmin (float): The minimum q value for the scattering pattern calculation. Default is 2.
+    qmax (float): The maximum q value for the scattering pattern calculation. Default is 10.0.
+    qstep (float): The step size for q values. Default is 0.01.
+    qmin_SAXS (float): The minimum q value for SAXS pattern calculations. Default is 0.01.
+    qmax_SAXS (float): The maximum q value for SAXS pattern calculations. Default is 3.0.
+    qstep_SAXS (float): The step size for q values in SAXS. Default is 0.01.
+    rmin (float): The minimum r value for the Gr pattern calculations. Default is 0.
+    rmax (float): The maximum r value for the Gr pattern calculations. Default is 30.
+    rstep (float): The step size for r values in Gr. Default is 0.1.
 
     Returns:
     loss (float): The loss value is a measure of the difference between the simulated and target scattering patterns.
@@ -674,7 +737,7 @@ def ScatterBO_robotic_benchmark(
         pumpF_speed,
         atom="Au",
     )
-    x_sim, Int_sim = calculate_scattering(cluster, function=scatteringfunction)
+    x_sim, Int_sim = calculate_scattering(cluster, function=scatteringfunction, qmin=qmin, qmax=qmax, qstep=qstep, rmin=rmin, rmax=rmax, rstep=rstep, qmin_SAXS=qmin_SAXS, qmax_SAXS=qmax_SAXS, qstep_SAXS=qstep_SAXS)
 
     # Load the target scattering data
     x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
