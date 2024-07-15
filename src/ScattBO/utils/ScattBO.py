@@ -16,7 +16,7 @@ from plotly.subplots import make_subplots
 ROOT_DIR = Path(__file__).parent.parent.parent.parent.resolve()
 
 
-def calculate_scattering(cluster, function="Gr"):
+def calculate_scattering(cluster, function="Gr", qmin=2, qmax=10.0, qstep=0.01, qmin_SAXS=0.01, qmax_SAXS=3.0, qstep_SAXS=0.01, rmin=0, rmax=30, rstep=0.1):
     """
     Calculate a Pair Distribution Function (PDF), Structure Factor (Sq), Form Factor (Fq), Intensity (Iq), or Small Angle X-ray Scattering (SAXS) from a given structure.
 
@@ -49,7 +49,7 @@ def calculate_scattering(cluster, function="Gr"):
     ], "Function must be 'Iq', 'Sq', 'Fq', 'Gr', or 'SAXS'."
 
     # Initialise calculator object
-    calc = DebyeCalculator(qmin=2, qmax=10.0, rmax=30, qstep=0.01)
+    calc = DebyeCalculator(qmin=qmin, qmax=qmax, qstep=qstep, rmin=rmin, rmax=rmax, rstep=rstep)
     r, Q, I, S, F, G = calc._get_all(structure_source=cluster)
 
     # Calculate scattering patterns
@@ -66,7 +66,7 @@ def calculate_scattering(cluster, function="Gr"):
         G /= G.max()
         return r, G
     elif function == "SAXS":
-        calc.update_parameters(qmin=0.01, qmax=3.0, qstep=0.01)
+        calc.update_parameters(qmin_SAXS=qmin_SAXS, qmax_SAXS=qmax_SAXS, qstep_SAXS=qstep_SAXS)
         Q_sim, I_sim = calc.iq(structure_source=cluster)
         I_sim /= I_sim.max()
         return Q_sim, I_sim
