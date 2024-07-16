@@ -6,7 +6,6 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 import numpy as np
 
-import torch
 import gpytorch
 from gpytorch.constraints.constraints import GreaterThan
 from botorch.models import SingleTaskGP
@@ -18,6 +17,7 @@ from ax.models.torch.botorch_modular.surrogate import Surrogate
 from ax.service.ax_client import AxClient, ObjectiveProperties
 
 from ScattBO.benchmark import Benchmark
+from ScattBO.parameters.benchmark_parameters import BenchmarkParameters
 
 generation_strategy = GenerationStrategy(
     steps=[
@@ -57,15 +57,15 @@ benchmark = Benchmark("large", "Gr", "simulated")
 
 
 def benchmark_wrapper_for_ax(parameters):
-    val = benchmark(
-        [
-            parameters.get("pH"),
-            parameters.get("pressure"),
-            parameters.get("solvent"),
-        ]
+    params = BenchmarkParameters(
+        pH=parameters["pH"],
+        pressure=parameters["pressure"],
+        solvent=["Ethanol", "Methanol", "Others", "Water"][
+            int(parameters["solvent_as_float"])
+        ],
     )
+    val = benchmark(params)
 
-    print(val)
     if np.isnan(val):
         return {"value": (-20.0, 0.0)}
     else:
@@ -90,7 +90,7 @@ ax_client.create_experiment(
             "value_type": "float",
         },
         {
-            "name": "solvent",
+            "name": "solvent_as_float",
             "type": "range",
             "bounds": list(benchmark.search_space["solvent"]),
             "value_type": "float",

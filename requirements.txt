@@ -2,3 +2,5 @@ ase
 debyecalculator
 bayesian-optimization
 plotly
+scikit-optimize
+pydantic

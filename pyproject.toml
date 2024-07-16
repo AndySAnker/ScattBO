@@ -22,7 +22,8 @@ dependencies = [
     "debyecalculator",
     "bayesian-optimization",
     "plotly",
-    "scikit-optimize"
+    "scikit-optimize",
+    "pydantic"
 ]
 
 [project.optional-dependencies]

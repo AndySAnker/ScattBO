@@ -4,6 +4,7 @@ from ScattBO.utils.ScattBO import (
     ScatterBO_large_benchmark,
     ScatterBO_small_benchmark,
 )
+from ScattBO.parameters.benchmark_parameters import BenchmarkParameters
 
 
 class Benchmark:
@@ -36,7 +37,7 @@ class Benchmark:
         }
         self.benchmark = self._construct_benchmark()
 
-    def _construct_benchmark(self) -> Callable[[list[float | int | str]], float]:
+    def _construct_benchmark(self) -> Callable[[BenchmarkParameters], float]:
         match self.size:
             case "small":
                 return self._construct_small_benchmark()
@@ -45,13 +46,13 @@ class Benchmark:
             case _:
                 raise NotImplementedError
 
-    def _construct_small_benchmark(self) -> Callable[[list[float | int | str]], float]:
+    def _construct_small_benchmark(self) -> Callable[[BenchmarkParameters], float]:
         if self.scattering_function == "both":
             functions_to_evaluate = ["Gr", "Sq"]
         else:
             functions_to_evaluate = [self.scattering_function]
 
-        def benchmark(params: list[float | int | str]) -> float:
+        def benchmark(params: BenchmarkParameters) -> float:
             val = 0
             for function in functions_to_evaluate:
                 val -= ScatterBO_small_benchmark(
@@ -64,13 +65,13 @@ class Benchmark:
 
         return benchmark
 
-    def _construct_large_benchmark(self) -> Callable[[list[float | int | str]], float]:
+    def _construct_large_benchmark(self) -> Callable[[BenchmarkParameters], float]:
         if self.scattering_function == "both":
             functions_to_evaluate = ["Gr", "Sq"]
         else:
             functions_to_evaluate = [self.scattering_function]
 
-        def benchmark(params: list[float | int | str]) -> float:
+        def benchmark(params: BenchmarkParameters) -> float:
             val = 0
             for function in functions_to_evaluate:
                 val -= ScatterBO_large_benchmark(
@@ -82,7 +83,7 @@ class Benchmark:
 
         return benchmark
 
-    def __call__(self, params: list[float | int | str]) -> float:
+    def __call__(self, params: BenchmarkParameters) -> float:
         return self.benchmark(params)
 
 
