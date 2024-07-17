@@ -29,4 +29,5 @@ class RoboticBenchmarkParameters(BaseModel):
     uvA: int = Field(..., ge=0, le=7)
     LED: int = Field(..., ge=0, le=7)
     pumps: list[PumpsParameters] = Field(..., min_length=6, max_length=6)
+    mixing_speed: float = Field(..., ge=2048.0, le=4096.0)
     atom: str = Field(default="Au")
