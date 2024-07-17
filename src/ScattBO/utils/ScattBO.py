@@ -478,6 +478,7 @@ def generate_structure_robotic(
     pumpE_speed,
     pumpF_volume,
     pumpF_speed,
+    mixing_speed,
     atom="Au",
 ):
     """
@@ -489,7 +490,8 @@ def generate_structure_robotic(
     uvA (int): 7 UV-A lamps, which controls the size of the structure. Range: [0, 7]
     LED (int): 7 LED lamps, which controls the size of the structure. Range: [0, 7]
     pump[A-F]_volume (float): The volume of pump [A-F], which controls the amount of solution in vessel [A-F]. Range: [0, 5]
-    pump[A-F]_speed (float): The speed of pump [A-F], which controls the speed the solution in vessel [A-F] is added. Range: [0, 4096]
+    pump[A-F]_speed (float): The speed of pump [A-F], which controls the speed the solution in vessel [A-F] is added. Range: [2048, 4096]
+    mixing_speed (float): The speed of the mixing process. Range: [2048, 4096]
     atom (str): The atom type. Default is 'Au'.
 
     Returns:
@@ -517,7 +519,7 @@ def generate_structure_robotic(
     ):
         raise ValueError("Pump volume must be in the range [0, 5] for all pumps")
     if not all(
-        0 <= speed <= 4096
+        2048 <= speed <= 4096
         for speed in [
             pumpA_speed,
             pumpB_speed,
@@ -527,7 +529,7 @@ def generate_structure_robotic(
             pumpF_speed,
         ]
     ):
-        raise ValueError("Pump speed must be in the range [0, 4096] for all pumps")
+        raise ValueError("Pump speed must be in the range [2048, 4096] for all pumps")
 
     total_volume = (
         pumpA_volume
@@ -539,6 +541,8 @@ def generate_structure_robotic(
     )
     if total_volume != 5:
         raise ValueError("The total volume of all pumps must be 5")
+    if mixing_speed < 2048 or mixing_speed > 4096:
+        raise ValueError("Mixing speed must be in the range [2048, 4096]")
 
     # Scale the size of the structure based on the number of UV lamps, UV-A lamps, and LED lamps
     scale_factor = (3 * uv + 2 * uvA + LED) / (
@@ -586,10 +590,14 @@ def generate_structure_robotic(
             )
             cluster.structure_type = "HexagonalClosedPacked"
     else:
-        if pumpD_speed > 2000:
-            cluster = Icosahedron(atom, noshells, 2 * np.sqrt(0.5 * lc**2))
-            cluster.structure_type = "Icosahedron"
-        elif pumpE_speed < 1000:
+        if pumpD_speed > 3500:
+            if mixing_speed > 3500:
+                cluster = Icosahedron(atom, noshells, 2 * np.sqrt(0.5 * lc**2))
+                cluster.structure_type = "Icosahedron"
+            else:
+                cluster = Decahedron(atom, p, q, r, 2 * np.sqrt(0.5 * lc**2))
+                cluster.structure_type = "Decahedron"
+        elif pumpE_speed < 2500:
             cluster = Decahedron(atom, p, q, r, 2 * np.sqrt(0.5 * lc**2))
             cluster.structure_type = "Decahedron"
         elif pumpF_volume > 1:
@@ -632,7 +640,8 @@ def ScatterBO_robotic_benchmark(
         uvA (int): 7 UV-A lamps, which controls the size of the structure. Range: [0, 7]
         LED (int): 7 LED lamps, which controls the size of the structure. Range: [0, 7]
         pump[A-F]_volume (float): The volume of pump [A-F], which controls the amount of solution in vessel [A-F]. Range: [0, 5]
-        pump[A-F]_speed (float): The speed of pump [A-F], which controls the speed the solution in vessel [A-F] is added. Range: [0, 4096]
+        pump[A-F]_speed (float): The speed of pump [A-F], which controls the speed the solution in vessel [A-F] is added. Range: [2048, 4096]
+        mixing_speed (float): The speed of the mixing process. Range: [2048, 4096]
         atom (str): The atom type. Default is 'Au'.
     plot (bool): If True, plot the simulated and target PDFs. Default is False.
     simulated_or_experimental (str): If 'simulated', use the filename 'Data/Gr/Target_[XXXX]_benchmark.npy'.
@@ -670,6 +679,7 @@ def ScatterBO_robotic_benchmark(
         pumpE_speed,
         pumpF_volume,
         pumpF_speed,
+        mixing_speed,
     ) = params
 
     # Check constraints
@@ -694,7 +704,7 @@ def ScatterBO_robotic_benchmark(
     ):
         raise ValueError("Pump volume must be in the range [0, 5] for all pumps")
     if not all(
-        0 <= speed <= 4096
+        2048 <= speed <= 4096
         for speed in [
             pumpA_speed,
             pumpB_speed,
@@ -716,6 +726,8 @@ def ScatterBO_robotic_benchmark(
     )
     if total_volume != 5:
         raise ValueError("The total volume of all pumps must be 5")
+    if not 2048 <= mixing_speed <= 4096:
+        raise ValueError("Mixing speed must be in the range [2048, 4096]")
 
     # Simulate a scattering pattern from synthesis parameters
     cluster = generate_structure_robotic(
@@ -735,6 +747,7 @@ def ScatterBO_robotic_benchmark(
         pumpE_speed,
         pumpF_volume,
         pumpF_speed,
+        mixing_speed,
         atom="Au",
     )
     x_sim, Int_sim = calculate_scattering(cluster, function=scatteringfunction, qmin=qmin, qmax=qmax, qstep=qstep, rmin=rmin, rmax=rmax, rstep=rstep, qmin_SAXS=qmin_SAXS, qmax_SAXS=qmax_SAXS, qstep_SAXS=qstep_SAXS)
