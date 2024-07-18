@@ -7,23 +7,18 @@ import numpy as np
 
 from ax.service.managed_loop import optimize
 
+from ScattBO.parameters.benchmark_parameters import BenchmarkParameters
 from ScattBO.benchmark.benchmark import Benchmark
 
 # One example:
 
-benchmark = Benchmark("large", "Gr", "simulated")
+benchmark = Benchmark("small", "Gr", "simulated")
 
 
 def benchmark_wrapper_for_ax(parameters):
-    val = benchmark(
-        [
-            parameters.get("pH"),
-            parameters.get("pressure"),
-            parameters.get("solvent"),
-        ]
-    )
+    params = BenchmarkParameters(**parameters)
+    val = benchmark(params)
 
-    print(val)
     if np.isnan(val):
         return {"value": (-20.0, 0.0)}
     else:
@@ -44,8 +39,8 @@ best_parameters, best_values, experiment, model = optimize(
         },
         {
             "name": "solvent",
-            "type": "range",
-            "bounds": list(benchmark.search_space["solvent"]),
+            "type": "choice",
+            "values": ["Ethanol", "Methanol"],
         },
     ],
     evaluation_function=benchmark_wrapper_for_ax,
