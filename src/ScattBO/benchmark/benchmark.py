@@ -11,7 +11,7 @@ class Benchmark:
     def __init__(
         self,
         size: Literal["small", "large"],
-        scattering_function: Literal["Gr", "Sq", "both"],
+        scattering_function: Literal["Iq", "Sq", "Fq", "Gr", "both"],
         simulated_or_experimental: Literal["simulated", "experimental"],
     ):
         self.size = size
