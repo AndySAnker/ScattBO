@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from ScattBO.parameters.pumps_parameters import PumpsParameters
+from ScattBO.parameters.pumps_parameters import PumpParameters
 
 
 class BenchmarkParameters(BaseModel):
@@ -28,6 +28,6 @@ class RoboticBenchmarkParameters(BaseModel):
     uv: int = Field(..., ge=0, le=15)
     uvA: int = Field(..., ge=0, le=7)
     LED: int = Field(..., ge=0, le=7)
-    pumps: list[PumpsParameters] = Field(..., min_length=6, max_length=6)
+    pumps: list[PumpParameters] = Field(..., min_length=6, max_length=6)
     mixing_speed: float = Field(..., ge=2048.0, le=4096.0)
     atom: str = Field(default="Au")
