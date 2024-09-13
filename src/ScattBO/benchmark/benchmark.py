@@ -14,7 +14,7 @@ from ScattBO.parameters.benchmark_parameters import (
 class Benchmark:
     def __init__(
         self,
-        size: Literal["small", "large"],
+        size: Literal["small", "large", "robotic"],
         scattering_function: Literal["Iq", "Sq", "Fq", "Gr", "both"],
         simulated_or_experimental: Literal["simulated", "experimental"],
     ):
@@ -47,6 +47,8 @@ class Benchmark:
                 return self._construct_small_benchmark()
             case "large":
                 return self._construct_large_benchmark()
+            case "robotic":
+                return self._construct_robotic_benchmark()
             case _:
                 raise NotImplementedError
 
