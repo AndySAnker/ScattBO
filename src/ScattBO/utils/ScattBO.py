@@ -484,6 +484,7 @@ def generate_structure_robotic(params: RoboticBenchmarkParameters, atom: str = "
     pumpD_speed = params.pump_d_speed
     pumpE_speed = params.pump_e_speed
 
+    epsilon = 1e-6
     total_volume = (
         pumpA_volume
         + pumpB_volume
@@ -492,7 +493,7 @@ def generate_structure_robotic(params: RoboticBenchmarkParameters, atom: str = "
         + pumpE_volume
         + pumpF_volume
     )
-    if total_volume != 5:
+    if total_volume > 5 + epsilon:
         raise ValueError("The total volume of all pumps must be 5")
 
     # Scale the size of the structure based on the number of UV lamps, UV-A lamps, and LED lamps
