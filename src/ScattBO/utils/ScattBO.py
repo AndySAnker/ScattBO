@@ -457,7 +457,7 @@ def ScatterBO_large_benchmark(
     return loss
 
 
-def generate_structure_robotic(params: RoboticBenchmarkParameters):
+def generate_structure_robotic(params: RoboticBenchmarkParameters, atom: str = "Au"):
     """
     Generate a structure based on the given parameters.
 
@@ -474,15 +474,15 @@ def generate_structure_robotic(params: RoboticBenchmarkParameters):
     Returns:
     cluster: The generated structure.
     """
-    pumpA_volume = params.pumps[0].volume
-    pumpB_volume = params.pumps[1].volume
-    pumpC_volume = params.pumps[2].volume
-    pumpD_volume = params.pumps[3].volume
-    pumpE_volume = params.pumps[4].volume
-    pumpF_volume = params.pumps[5].volume
+    pumpA_volume = params.pump_a_volume
+    pumpB_volume = params.pump_b_volume
+    pumpC_volume = params.pump_c_volume
+    pumpD_volume = params.pump_d_volume
+    pumpE_volume = params.pump_e_volume
+    pumpF_volume = params.pump_f_volume
 
-    pumpD_speed = params.pumps[3].speed
-    pumpE_speed = params.pumps[4].speed
+    pumpD_speed = params.pump_d_speed
+    pumpE_speed = params.pump_e_speed
 
     total_volume = (
         pumpA_volume
@@ -517,7 +517,7 @@ def generate_structure_robotic(params: RoboticBenchmarkParameters):
     if num_atoms > 2000:  # approximate 3 nm in diameter
         if pumpA_volume < 0.5:
             cluster = FaceCenteredCubic(
-                params.atom,
+                atom,
                 directions=surfaces,
                 size=layers,
                 latticeconstant=2 * np.sqrt(0.5 * lc**2),
@@ -525,17 +525,17 @@ def generate_structure_robotic(params: RoboticBenchmarkParameters):
             cluster.structure_type = "FaceCenteredCubic"
         elif pumpB_volume > pumpA_volume:
             cluster = SimpleCubic(
-                params.atom, directions=surfaces, size=layers, latticeconstant=lc
+                atom, directions=surfaces, size=layers, latticeconstant=lc
             )
             cluster.structure_type = "SimpleCubic"
         elif pumpC_volume > pumpB_volume:
             cluster = BodyCenteredCubic(
-                params.atom, directions=surfaces, size=layers, latticeconstant=lc
+                atom, directions=surfaces, size=layers, latticeconstant=lc
             )
             cluster.structure_type = "BodyCenteredCubic"
         else:
             cluster = HexagonalClosedPacked(
-                params.atom,
+                atom,
                 latticeconstant=(lc, lc * 1.633),
                 size=(noshells, noshells, noshells),
             )
@@ -543,22 +543,22 @@ def generate_structure_robotic(params: RoboticBenchmarkParameters):
     else:
         if pumpD_speed > 3500:
             if params.mixing_speed > 3500:
-                cluster = Icosahedron(params.atom, noshells, 2 * np.sqrt(0.5 * lc**2))
+                cluster = Icosahedron(atom, noshells, 2 * np.sqrt(0.5 * lc**2))
                 cluster.structure_type = "Icosahedron"
             else:
-                cluster = Decahedron(params.atom, p, q, r, 2 * np.sqrt(0.5 * lc**2))
+                cluster = Decahedron(atom, p, q, r, 2 * np.sqrt(0.5 * lc**2))
                 cluster.structure_type = "Decahedron"
         elif pumpE_speed < 2500:
-            cluster = Decahedron(params.atom, p, q, r, 2 * np.sqrt(0.5 * lc**2))
+            cluster = Decahedron(atom, p, q, r, 2 * np.sqrt(0.5 * lc**2))
             cluster.structure_type = "Decahedron"
         elif pumpF_volume > 1:
             cluster = BodyCenteredCubic(
-                params.atom, directions=surfaces, size=layers, latticeconstant=lc
+                atom, directions=surfaces, size=layers, latticeconstant=lc
             )
             cluster.structure_type = "BodyCenteredCubic"
         else:
             cluster = Octahedron(
-                params.atom, length=noshells, latticeconstant=2 * np.sqrt(0.5 * lc**2)
+                atom, length=noshells, latticeconstant=2 * np.sqrt(0.5 * lc**2)
             )
             cluster.structure_type = "Octahedron"
 

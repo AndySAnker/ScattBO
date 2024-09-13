@@ -3,8 +3,12 @@ from typing import Literal, Callable
 from ScattBO.utils.ScattBO import (
     ScatterBO_large_benchmark,
     ScatterBO_small_benchmark,
+    ScatterBO_robotic_benchmark,
 )
-from ScattBO.parameters.benchmark_parameters import BenchmarkParameters
+from ScattBO.parameters.benchmark_parameters import (
+    BenchmarkParameters,
+    RoboticBenchmarkParameters,
+)
 
 
 class Benchmark:
@@ -80,6 +84,18 @@ class Benchmark:
                     **self.kwargs_for_benchmark,
                 )
             return val
+
+        return benchmark
+
+    def _construct_robotic_benchmark(
+        self,
+    ) -> Callable[[RoboticBenchmarkParameters], float]:
+        def benchmark(params: RoboticBenchmarkParameters) -> float:
+            return ScatterBO_robotic_benchmark(
+                params,
+                scatteringfunction=self.scattering_function,
+                **self.kwargs_for_benchmark,
+            )
 
         return benchmark
 

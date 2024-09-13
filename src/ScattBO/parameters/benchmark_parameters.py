@@ -24,10 +24,20 @@ class LargeBenchmarkParameters(BenchmarkParameters):
 
 
 class RoboticBenchmarkParameters(BaseModel):
-    temperature: float = Field(..., ge=20.0, le=70.0)
+    temperature: float = Field(..., ge=20.0, le=60.0)
     uv: int = Field(..., ge=0, le=15)
     uvA: int = Field(..., ge=0, le=7)
     LED: int = Field(..., ge=0, le=7)
-    pumps: list[PumpsParameters] = Field(..., min_length=6, max_length=6)
+    pump_a_volume: float = Field(..., ge=0.0, le=5.0)
+    pump_a_speed: float = Field(..., ge=2000.0, le=4096.0)
+    pump_b_volume: float = Field(..., ge=0.0, le=5.0)
+    pump_b_speed: float = Field(..., ge=2000.0, le=4096.0)
+    pump_c_volume: float = Field(..., ge=0.0, le=5.0)
+    pump_c_speed: float = Field(..., ge=2000.0, le=4096.0)
+    pump_d_volume: float = Field(..., ge=0.0, le=5.0)
+    pump_d_speed: float = Field(..., ge=2000.0, le=4096.0)
+    pump_e_volume: float = Field(..., ge=0.0, le=5.0)
+    pump_e_speed: float = Field(..., ge=2000.0, le=4096.0)
+    pump_f_volume: float = Field(..., ge=0.0, le=5.0)
+    pump_f_speed: float = Field(..., ge=2000.0, le=4096.0)
     mixing_speed: float = Field(..., ge=2048.0, le=4096.0)
-    atom: str = Field(default="Au")
