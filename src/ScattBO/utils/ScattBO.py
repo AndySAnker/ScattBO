@@ -178,8 +178,16 @@ def generate_structure(benchmark_params: BenchmarkParameters, atom="Au"):
 
     return cluster
 
+def find_data_start(filename):
+    with open(filename, 'r') as file:
+        for i, line in enumerate(file):
+            # Define your condition for identifying the start of data here
+            # For example, if data lines start with numbers, you could use:
+            if line.strip() and line.split()[0].isdigit():
+                return i
+    raise ValueError(f"Unable to find the start of data in file: {filename}")
 
-def LoadData(simulated_or_experimental="simulated", scatteringfunction="Gr"):
+def LoadData(simulated_or_experimental="simulated", scatteringfunction="Gr", filename=None):
     """
     Load scattering data from a file.
 
@@ -188,40 +196,45 @@ def LoadData(simulated_or_experimental="simulated", scatteringfunction="Gr"):
                                      Default is "simulated".
     scatteringfunction (str): Specifies the type of scattering function.
                               Options are "Gr", "Sq", "Iq", "Fq", and "SAXS". Default is "Gr".
+    filename (str or Path, optional): The path to the file to load. If provided, this will be used
+                                      directly and the other parameters will be ignored.
 
     Returns:
     x_target (numpy.ndarray): The x values from the loaded data.
     Int_target (numpy.ndarray): The intensity values from the loaded data.
 
     Raises:
-    ValueError: If an invalid scatteringfunction is specified.
+    ValueError: If an invalid scatteringfunction is specified and filename is not provided.
     """
-    # Set the filename based on the simulated_or_experimental and scatteringfunction variables
-    if scatteringfunction == "Gr":
-        if simulated_or_experimental == "simulated":
-            filename = ROOT_DIR / "Data" / "Gr" / "Target_PDF_benchmark.npy"
-        else:  # simulated_or_experimental == 'experimental'
-            filename = ROOT_DIR / "Data" / "Gr" / "Experimental_PDF.gr"
-    elif scatteringfunction == "Sq":
-        if simulated_or_experimental == "simulated":
-            filename = ROOT_DIR / "Data" / "Sq" / "Target_Sq_benchmark.npy"
-        else:  # simulated_or_experimental == 'experimental'
-            filename = ROOT_DIR / "Data" / "Sq" / "Experimental_Sq.sq"
-    elif scatteringfunction == "Iq":
-        if simulated_or_experimental == "simulated":
-            filename = ROOT_DIR / "Data" / "Iq" / "Target_Iq_benchmark.npy"
-    elif scatteringfunction == "Fq":
-        if simulated_or_experimental == "simulated":
-            filename = ROOT_DIR / "Data" / "Fq" / "Target_Fq_benchmark.npy"
-    elif scatteringfunction == "SAXS":
-        if simulated_or_experimental == "simulated":
-            filename = ROOT_DIR / "Data" / "SAXS" / "Target_SAXS_benchmark.npy"
-    else:
-        raise ValueError(f"Invalid scatteringfunction: {scatteringfunction}")
+    if filename is None:
+        # Set the filename based on the simulated_or_experimental and scatteringfunction variables
+        if scatteringfunction == "Gr":
+            if simulated_or_experimental == "simulated":
+                filename = ROOT_DIR / "Data" / "Gr" / "Target_PDF_benchmark.npy"
+            else:  # simulated_or_experimental == 'experimental'
+                filename = ROOT_DIR / "Data" / "Gr" / "Experimental_PDF.gr"
+        elif scatteringfunction == "Sq":
+            if simulated_or_experimental == "simulated":
+                filename = ROOT_DIR / "Data" / "Sq" / "Target_Sq_benchmark.npy"
+            else:  # simulated_or_experimental == 'experimental'
+                filename = ROOT_DIR / "Data" / "Sq" / "Experimental_Sq.sq"
+        elif scatteringfunction == "Iq":
+            if simulated_or_experimental == "simulated":
+                filename = ROOT_DIR / "Data" / "Iq" / "Target_Iq_benchmark.npy"
+        elif scatteringfunction == "Fq":
+            if simulated_or_experimental == "simulated":
+                filename = ROOT_DIR / "Data" / "Fq" / "Target_Fq_benchmark.npy"
+        elif scatteringfunction == "SAXS":
+            if simulated_or_experimental == "simulated":
+                filename = ROOT_DIR / "Data" / "SAXS" / "Target_SAXS_benchmark.npy"
+        else:
+            raise ValueError(f"Invalid scatteringfunction: {scatteringfunction}")
+
+    skiprows = find_data_start(filename)
 
     # Load the data from the file
     data = (
-        np.loadtxt(filename, skiprows=25)
+        np.loadtxt(filename, skiprows=skiprows)
         if str(filename).endswith(".gr") or str(filename).endswith(".sq")
         else np.load(filename)
     )
@@ -294,6 +307,7 @@ def ScatterBO_small_benchmark(
     qmin_SAXS=0.01,
     qmax_SAXS=3.0,
     qstep_SAXS=0.01,
+    filename=None,
 ):
     """
     Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
@@ -319,6 +333,8 @@ def ScatterBO_small_benchmark(
     rmin (float): The minimum r value for the Gr pattern calculations. Default is 0.
     rmax (float): The maximum r value for the Gr pattern calculations. Default is 30.
     rstep (float): The step size for r values in Gr. Default is 0.1.
+    filename (str or Path, optional): The path to the file to load. If provided, this will be used
+                                    directly and the other parameters will be ignored.
 
     Returns:
     loss (float): The loss value is a measure of the difference between the simulated and target scattering patterns.
@@ -340,7 +356,7 @@ def ScatterBO_small_benchmark(
     )
 
     # Load the target scattering data
-    x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
+    x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction, filename)
 
     # Calculate the difference between the simulated and target scattering patterns
     loss, Int_sim_interp = calculate_loss(
@@ -383,6 +399,7 @@ def ScatterBO_large_benchmark(
     qmin_SAXS=0.01,
     qmax_SAXS=3.0,
     qstep_SAXS=0.01,
+    filename=None,
 ):
     """
     Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
@@ -408,6 +425,8 @@ def ScatterBO_large_benchmark(
     rmin (float): The minimum r value for the Gr pattern calculations. Default is 0.
     rmax (float): The maximum r value for the Gr pattern calculations. Default is 30.
     rstep (float): The step size for r values in Gr. Default is 0.1.
+    filename (str or Path, optional): The path to the file to load. If provided, this will be used
+                                directly and the other parameters will be ignored.
 
     Returns:
     loss (float): The loss value is a measure of the difference between the simulated and target scattering patterns.
@@ -429,7 +448,7 @@ def ScatterBO_large_benchmark(
     )
 
     # Load the target scattering data
-    x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
+    x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction, filename)
 
     # Calculate the difference between the simulated and target scattering patterns
     loss, Int_sim_interp = calculate_loss(
@@ -580,6 +599,7 @@ def ScatterBO_robotic_benchmark(
     qmin_SAXS=0.01,
     qmax_SAXS=3.0,
     qstep_SAXS=0.01,
+    filename=None,
 ):
     """
     Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
@@ -609,6 +629,8 @@ def ScatterBO_robotic_benchmark(
     rmin (float): The minimum r value for the Gr pattern calculations. Default is 0.
     rmax (float): The maximum r value for the Gr pattern calculations. Default is 30.
     rstep (float): The step size for r values in Gr. Default is 0.1.
+    filename (str or Path, optional): The path to the file to load. If provided, this will be used
+                                    directly and the other parameters will be ignored.
 
     Returns:
     loss (float): The loss value is a measure of the difference between the simulated and target scattering patterns.
@@ -630,7 +652,7 @@ def ScatterBO_robotic_benchmark(
     )
 
     # Load the target scattering data
-    x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
+    x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction, filename)
 
     # Calculate the difference between the simulated and target scattering patterns
     loss, Int_sim_interp = calculate_loss(
