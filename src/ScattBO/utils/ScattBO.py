@@ -288,9 +288,11 @@ def calculate_loss(x_target, x_sim, Int_target, Int_sim, loss_type="rwp"):
             phase_dist, amplitude_dist = dist(t, Int_target_double, Int_sim_interp_double, **optim_kwargs)
 
             # Convert amplitude_dist to a torch tensor for loss
-            loss = torch.tensor(amplitude_dist, dtype=torch.float32)
+            loss_amplitude = torch.tensor(amplitude_dist, dtype=torch.float32)
+            loss_phase = torch.tensor(phase_dist, dtype=torch.float32)
+            loss = loss_amplitude + loss_phase
         except ModuleNotFoundError:
-            print("Follow the installation instructions at https://github.com/kiranvad/Amplitude-Phase-Distance/tree/main")
+            raise("Follow the installation instructions at https://github.com/kiranvad/Amplitude-Phase-Distance/tree/main")
     else:
         raise ValueError(f"Invalid loss_type: {loss_type}")
 
