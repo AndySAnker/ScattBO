@@ -3,14 +3,18 @@ from typing import Literal, Callable
 from ScattBO.utils.ScattBO import (
     ScatterBO_large_benchmark,
     ScatterBO_small_benchmark,
+    ScatterBO_robotic_benchmark,
 )
-from ScattBO.parameters.benchmark_parameters import BenchmarkParameters
+from ScattBO.parameters.benchmark_parameters import (
+    BenchmarkParameters,
+    RoboticBenchmarkParameters,
+)
 
 
 class Benchmark:
     def __init__(
         self,
-        size: Literal["small", "large"],
+        size: Literal["small", "large", "robotic"],
         scattering_function: Literal["Iq", "Sq", "Fq", "Gr", "both"],
         simulated_or_experimental: Literal["simulated", "experimental"],
     ):
@@ -43,6 +47,8 @@ class Benchmark:
                 return self._construct_small_benchmark()
             case "large":
                 return self._construct_large_benchmark()
+            case "robotic":
+                return self._construct_robotic_benchmark()
             case _:
                 raise NotImplementedError
 
@@ -80,6 +86,18 @@ class Benchmark:
                     **self.kwargs_for_benchmark,
                 )
             return val
+
+        return benchmark
+
+    def _construct_robotic_benchmark(
+        self,
+    ) -> Callable[[RoboticBenchmarkParameters], float]:
+        def benchmark(params: RoboticBenchmarkParameters) -> float:
+            return ScatterBO_robotic_benchmark(
+                params,
+                scatteringfunction=self.scattering_function,
+                **self.kwargs_for_benchmark,
+            )
 
         return benchmark
 
