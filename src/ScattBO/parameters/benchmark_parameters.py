@@ -2,8 +2,6 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from ScattBO.parameters.pumps_parameters import PumpsParameters
-
 
 class BenchmarkParameters(BaseModel):
     pH: float
