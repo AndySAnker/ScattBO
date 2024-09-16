@@ -2,12 +2,16 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from ScattBO.utils import generate_structure, calculate_scattering
+from ScattBO.parameters.benchmark_parameters import BenchmarkParameters
 from pathlib import Path
 import os
 ROOT_DIR = Path(os.getcwd()).parent.resolve()
 
-# Generate the structure and calculate the scattering
-cluster = generate_structure(pH=10, pressure=75, solvent="Ethanol", atom="Au")
+# Create an instance of BenchmarkParameters
+params = BenchmarkParameters(pH=10, pressure=75, solvent="Ethanol", atom="Au")
+
+# Call the generate_structure function with the params instance
+cluster = generate_structure(params)
 q, I = calculate_scattering(cluster, function="Iq")
 q, S = calculate_scattering(cluster, function="Sq")
 q, F = calculate_scattering(cluster, function="Fq")
