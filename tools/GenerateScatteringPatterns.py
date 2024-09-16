@@ -1,13 +1,17 @@
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from ScattBO.utils import generate_structure, calculate_scattering
+from ScattBO.utils import generate_structure, calculate_scattering, LoadData
+from ScattBO.parameters.benchmark_parameters import BenchmarkParameters
 from pathlib import Path
 import os
 ROOT_DIR = Path(os.getcwd()).parent.resolve()
 
-# Generate the structure and calculate the scattering
-cluster = generate_structure(pH=10, pressure=75, solvent="Ethanol", atom="Au")
+# Create an instance of BenchmarkParameters
+params = BenchmarkParameters(pH=10, pressure=75, solvent="Ethanol", atom="Au")
+
+# Call the generate_structure function with the params instance
+cluster = generate_structure(params)
 q, I = calculate_scattering(cluster, function="Iq")
 q, S = calculate_scattering(cluster, function="Sq")
 q, F = calculate_scattering(cluster, function="Fq")
@@ -32,12 +36,24 @@ np.save(os.path.join(ROOT_DIR, 'Data/SAXS/Target_SAXS_benchmark.npy'), np.vstack
 # Create the subplots
 fig = make_subplots(rows=5, cols=1)
 
+exp_data_sim_Iq_Q, exp_data_sim_Iq_I = LoadData(simulated_or_experimental="simulated", scatteringfunction="Iq")
+exp_data_sim_Sq_Q, exp_data_sim_Sq_S = LoadData(simulated_or_experimental="simulated", scatteringfunction="Sq")
+exp_data_sim_Fq_Q, exp_data_sim_Fq_F = LoadData(simulated_or_experimental="simulated", scatteringfunction="Fq")
+exp_data_sim_Gr_R, exp_data_sim_Gr_G = LoadData(simulated_or_experimental="simulated", scatteringfunction="Gr")
+exp_data_sim_SAXS_Q, exp_data_sim_SAXS_SAXS = LoadData(simulated_or_experimental="simulated", scatteringfunction="SAXS")
+
 # Add the traces
-fig.add_trace(go.Scatter(x=q, y=I, mode='lines', name='Iq'), row=1, col=1)
-fig.add_trace(go.Scatter(x=q, y=S, mode='lines', name='Sq'), row=2, col=1)
-fig.add_trace(go.Scatter(x=q, y=F, mode='lines', name='Fq'), row=3, col=1)
-fig.add_trace(go.Scatter(x=r, y=G, mode='lines', name='Gr'), row=4, col=1)
-fig.add_trace(go.Scatter(x=q_SAXS, y=SAXS, mode='lines', name='SAXS'), row=5, col=1)
+fig.add_trace(go.Scatter(x=q, y=I, mode='lines', name='Iq', line=dict(width=10)), row=1, col=1)
+fig.add_trace(go.Scatter(x=q, y=S, mode='lines', name='Sq', line=dict(width=10)), row=2, col=1)
+fig.add_trace(go.Scatter(x=q, y=F, mode='lines', name='Fq', line=dict(width=10)), row=3, col=1)
+fig.add_trace(go.Scatter(x=r, y=G, mode='lines', name='Gr', line=dict(width=10)), row=4, col=1)
+fig.add_trace(go.Scatter(x=q_SAXS, y=SAXS, mode='lines', name='SAXS', line=dict(width=10)), row=5, col=1)
+fig.add_trace(go.Scatter(x=exp_data_sim_Iq_Q, y=exp_data_sim_Iq_I, mode='markers', name='Iq_simulated', marker=dict(size=4)), row=1, col=1)
+fig.add_trace(go.Scatter(x=exp_data_sim_Sq_Q, y=exp_data_sim_Sq_S, mode='markers', name='Sq_simulated', marker=dict(size=4)), row=2, col=1)
+fig.add_trace(go.Scatter(x=exp_data_sim_Fq_Q, y=exp_data_sim_Fq_F, mode='markers', name='Fq_simulated', marker=dict(size=4)), row=3, col=1)
+fig.add_trace(go.Scatter(x=exp_data_sim_Gr_R, y=exp_data_sim_Gr_G, mode='markers', name='Gr_simulated', marker=dict(size=4)), row=4, col=1)
+fig.add_trace(go.Scatter(x=exp_data_sim_SAXS_Q, y=exp_data_sim_SAXS_SAXS, mode='markers', name='SAXS_simulated', marker=dict(size=4)), row=5, col=1)
+
 
 # Set the x-axis and y-axis of the SAXS subplot to log scale
 fig.update_xaxes(type='log', row=5, col=1)
