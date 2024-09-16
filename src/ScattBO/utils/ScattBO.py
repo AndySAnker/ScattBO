@@ -474,17 +474,16 @@ def generate_structure_robotic(params: RoboticBenchmarkParameters, atom: str = "
     Returns:
     cluster: The generated structure.
     """
-    pumpA_volume = params.pump_a_volume
-    pumpB_volume = params.pump_b_volume
-    pumpC_volume = params.pump_c_volume
-    pumpD_volume = params.pump_d_volume
-    pumpE_volume = params.pump_e_volume
-    pumpF_volume = params.pump_f_volume
+    pumpA_volume = params.pump_a_volume_proportion
+    pumpB_volume = params.pump_b_volume_proportion
+    pumpC_volume = params.pump_c_volume_proportion
+    pumpD_volume = params.pump_d_volume_proportion
+    pumpE_volume = params.pump_e_volume_proportion
+    pumpF_volume = params.pump_f_volume_proportion
 
     pumpD_speed = params.pump_d_speed
     pumpE_speed = params.pump_e_speed
 
-    epsilon = 1e-6
     total_volume = (
         pumpA_volume
         + pumpB_volume
@@ -493,8 +492,8 @@ def generate_structure_robotic(params: RoboticBenchmarkParameters, atom: str = "
         + pumpE_volume
         + pumpF_volume
     )
-    if total_volume > 5 + epsilon:
-        raise ValueError("The total volume of all pumps must be 5")
+    if total_volume == 1.0:
+        raise ValueError("The total volume of all pumps must be 1.0")
 
     # Scale the size of the structure based on the number of UV lamps, UV-A lamps, and LED lamps
     scale_factor = (3 * params.uv + 2 * params.uvA + params.LED) / (
@@ -516,7 +515,7 @@ def generate_structure_robotic(params: RoboticBenchmarkParameters, atom: str = "
     num_atoms = total_volume / volume_per_atom  # Number of atoms
 
     if num_atoms > 2000:  # approximate 3 nm in diameter
-        if pumpA_volume < 0.5:
+        if pumpA_volume < 0.1:
             cluster = FaceCenteredCubic(
                 atom,
                 directions=surfaces,
@@ -552,7 +551,7 @@ def generate_structure_robotic(params: RoboticBenchmarkParameters, atom: str = "
         elif pumpE_speed < 2500:
             cluster = Decahedron(atom, p, q, r, 2 * np.sqrt(0.5 * lc**2))
             cluster.structure_type = "Decahedron"
-        elif pumpF_volume > 1:
+        elif pumpF_volume > 0.2:
             cluster = BodyCenteredCubic(
                 atom, directions=surfaces, size=layers, latticeconstant=lc
             )
