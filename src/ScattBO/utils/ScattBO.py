@@ -270,7 +270,7 @@ def calculate_loss(x_target, x_sim, Int_target, Int_sim, loss_type="rwp"):
     x_sim (numpy.ndarray): The x values of the simulated scattering pattern.
     Int_target (numpy.ndarray): The intensity values of the target scattering pattern.
     Int_sim (numpy.ndarray): The intensity values of the simulated scattering pattern.
-    loss_type (str): The type of loss to calculate. Options are 'rwp' (default), 'mae', 'mse', and 'smooth_l1'.
+    loss_type (str): The type of loss to calculate. Options are 'rwp' (default), 'mae', 'mse', and 'smooth_l1', 'shape-metric'.
 
     Returns:
     loss (float): The calculated loss value.
@@ -301,6 +301,26 @@ def calculate_loss(x_target, x_sim, Int_target, Int_sim, loss_type="rwp"):
         loss = nn.MSELoss()(Int_target, Int_sim_interp)
     elif loss_type == "smooth_l1":
         loss = nn.SmoothL1Loss()(Int_target, Int_sim_interp)
+    elif loss_type == "shape-metric":
+        # Calculate the shape metric based on: https://github.com/kiranvad/Amplitude-Phase-Distance/tree/main
+        try:
+            from apdist import AmplitudePhaseDistance as dist
+            # Ensure Int_target_double and Int_sim_interp_double are numpy arrays of float64
+            Int_target_double = np.array(Int_target, dtype=np.float64)
+            Int_sim_interp_double = np.array(Int_sim_interp, dtype=np.float64)
+
+            optim_kwargs = {"optim": "DP", "grid_dim": 10}
+            t = (x_target - np.max(x_target)) / (np.max(x_target) - np.min(x_target))
+
+            # Calculate phase_dist and amplitude_dist using the dist function
+            phase_dist, amplitude_dist = dist(t, Int_target_double, Int_sim_interp_double, **optim_kwargs)
+
+            # Convert amplitude_dist to a torch tensor for loss
+            loss_amplitude = torch.tensor(amplitude_dist, dtype=torch.float32)
+            loss_phase = torch.tensor(phase_dist, dtype=torch.float32)
+            loss = loss_amplitude + loss_phase
+        except ModuleNotFoundError:
+            raise("Follow the installation instructions at https://github.com/kiranvad/Amplitude-Phase-Distance/tree/main")
     else:
         raise ValueError(f"Invalid loss_type: {loss_type}")
 
