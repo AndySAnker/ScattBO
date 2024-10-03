@@ -4,4 +4,5 @@ from .ScattBO import (
     calculate_scattering,
     calculate_loss,
     generate_structure,
+    LoadData,
 )

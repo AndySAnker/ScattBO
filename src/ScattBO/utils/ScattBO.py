@@ -85,24 +85,56 @@ def calculate_scattering(
 
     # Calculate scattering patterns
     if function == "Iq":
-        I /= I.max()
         return Q, I
     elif function == "Sq":
-        S /= S.max()
         return Q, S
     elif function == "Fq":
-        F /= F.max()
         return Q, F
     elif function == "Gr":
-        G /= G.max()
         return r, G
     elif function == "SAXS":
         calc.update_parameters(
             qmin_SAXS=qmin_SAXS, qmax_SAXS=qmax_SAXS, qstep_SAXS=qstep_SAXS
         )
         Q_sim, I_sim = calc.iq(structure_source=cluster)
-        I_sim /= I_sim.max()
         return Q_sim, I_sim
+
+
+def normalise_data(data, mode="peak"):
+    """
+    Normalise the data.
+
+    Parameters:
+    data (numpy.ndarray or torch.Tensor): The data to normalise.
+    mode (str): The normalization mode. 'peak' for highest peak to 1, 'ML_standard' for -1 to 1, 'none' for no scaling.
+
+    Returns:
+    data (numpy.ndarray or torch.Tensor): The normalised data.
+    """
+    if isinstance(data, np.ndarray):
+        if mode == "peak":
+            data = data / data.max()
+        elif mode == "ML_standard":
+            data = 2 * (data - data.min()) / (data.max() - data.min()) - 1
+        elif mode == "none":
+            pass  # No scaling
+        else:
+            raise ValueError("Mode must be 'peak', 'ML_standard', or 'none'")
+    elif isinstance(data, torch.Tensor):
+        if mode == "peak":
+            data = data / torch.max(data)
+        elif mode == "ML_standard":
+            data = (
+                2 * (data - torch.min(data)) / (torch.max(data) - torch.min(data)) - 1
+            )
+        elif mode == "none":
+            pass  # No scaling
+        else:
+            raise ValueError("Mode must be 'peak', 'ML_standard', or 'none'")
+    else:
+        raise TypeError("Input data must be a numpy.ndarray or torch.Tensor")
+
+    return data
 
 
 def generate_structure(benchmark_params: BenchmarkParameters, atom="Au"):
@@ -180,10 +212,18 @@ def generate_structure(benchmark_params: BenchmarkParameters, atom="Au"):
     return cluster
 
 
+def find_data_start(filename):
+    with open(filename, "r") as file:
+        for i, line in enumerate(file):
+            # Define your condition for identifying the start of data here
+            # For example, if data lines start with numbers, you could use:
+            if line.strip() and line.split()[0].isdigit():
+                return i
+    raise ValueError(f"Unable to find the start of data in file: {filename}")
+
+
 def LoadData(
-    simulated_or_experimental="simulated",
-    target_filename: str | Path | None = None,
-    scatteringfunction="Gr",
+    simulated_or_experimental="simulated", scatteringfunction="Gr", filename=None
 ):
     """
     Load scattering data from a file.
@@ -194,18 +234,18 @@ def LoadData(
     target_filename (str or Path): The filename of the target scattering data. Default is None.
     scatteringfunction (str): Specifies the type of scattering function.
                               Options are "Gr", "Sq", "Iq", "Fq", and "SAXS". Default is "Gr".
+    filename (str or Path, optional): The path to the file to load. If provided, this will be used
+                                      directly and the other parameters will be ignored.
 
     Returns:
     x_target (numpy.ndarray): The x values from the loaded data.
     Int_target (numpy.ndarray): The intensity values from the loaded data.
 
     Raises:
-    ValueError: If an invalid scatteringfunction is specified.
+    ValueError: If an invalid scatteringfunction is specified and filename is not provided.
     """
-    # Set the filename based on the simulated_or_experimental and scatteringfunction variables
-    if target_filename is not None:
-        filename = target_filename
-    else:
+    if filename is None:
+        # Set the filename based on the simulated_or_experimental and scatteringfunction variables
         if scatteringfunction == "Gr":
             if simulated_or_experimental == "simulated":
                 filename = ROOT_DIR / "Data" / "Gr" / "Target_PDF_benchmark.npy"
@@ -228,9 +268,11 @@ def LoadData(
         else:
             raise ValueError(f"Invalid scatteringfunction: {scatteringfunction}")
 
+    skiprows = find_data_start(filename)
+
     # Load the data from the file
     data = (
-        np.loadtxt(filename, skiprows=25)
+        np.loadtxt(filename, skiprows=skiprows)
         if str(filename).endswith(".gr") or str(filename).endswith(".sq")
         else np.load(filename)
     )
@@ -251,7 +293,7 @@ def calculate_loss(x_target, x_sim, Int_target, Int_sim, loss_type="rwp"):
     x_sim (numpy.ndarray): The x values of the simulated scattering pattern.
     Int_target (numpy.ndarray): The intensity values of the target scattering pattern.
     Int_sim (numpy.ndarray): The intensity values of the simulated scattering pattern.
-    loss_type (str): The type of loss to calculate. Options are 'rwp' (default), 'mae', 'mse', and 'smooth_l1'.
+    loss_type (str): The type of loss to calculate. Options are 'rwp' (default), 'mae', 'mse', and 'smooth_l1', 'shape-metric'.
 
     Returns:
     loss (float): The calculated loss value.
@@ -282,6 +324,31 @@ def calculate_loss(x_target, x_sim, Int_target, Int_sim, loss_type="rwp"):
         loss = nn.MSELoss()(Int_target, Int_sim_interp)
     elif loss_type == "smooth_l1":
         loss = nn.SmoothL1Loss()(Int_target, Int_sim_interp)
+    elif loss_type == "shape-metric":
+        # Calculate the shape metric based on: https://github.com/kiranvad/Amplitude-Phase-Distance/tree/main
+        try:
+            from apdist import AmplitudePhaseDistance as dist
+
+            # Ensure Int_target_double and Int_sim_interp_double are numpy arrays of float64
+            Int_target_double = np.array(Int_target, dtype=np.float64)
+            Int_sim_interp_double = np.array(Int_sim_interp, dtype=np.float64)
+
+            optim_kwargs = {"optim": "DP", "grid_dim": 10}
+            t = (x_target - np.max(x_target)) / (np.max(x_target) - np.min(x_target))
+
+            # Calculate phase_dist and amplitude_dist using the dist function
+            phase_dist, amplitude_dist = dist(
+                t, Int_target_double, Int_sim_interp_double, **optim_kwargs
+            )
+
+            # Convert amplitude_dist to a torch tensor for loss
+            loss_amplitude = torch.tensor(amplitude_dist, dtype=torch.float32)
+            loss_phase = torch.tensor(phase_dist, dtype=torch.float32)
+            loss = loss_amplitude + loss_phase
+        except ModuleNotFoundError:
+            raise (
+                "Follow the installation instructions at https://github.com/kiranvad/Amplitude-Phase-Distance/tree/main"
+            )
     else:
         raise ValueError(f"Invalid loss_type: {loss_type}")
 
@@ -303,6 +370,8 @@ def ScatterBO_small_benchmark(
     qmin_SAXS=0.01,
     qmax_SAXS=3.0,
     qstep_SAXS=0.01,
+    filename=None,
+    normalisation_mode="peak",
 ):
     """
     Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
@@ -328,6 +397,9 @@ def ScatterBO_small_benchmark(
     rmin (float): The minimum r value for the Gr pattern calculations. Default is 0.
     rmax (float): The maximum r value for the Gr pattern calculations. Default is 30.
     rstep (float): The step size for r values in Gr. Default is 0.1.
+    filename (str or Path, optional): The path to the file to load. If provided, this will be used
+                                    directly and the other parameters will be ignored.
+    normalisation_mode (str): The normalization mode. 'peak' for highest peak to 1, 'ML_standard' for -1 to 1, 'none' for no scaling. Default is 'peak'.
 
     Returns:
     loss (float): The loss value is a measure of the difference between the simulated and target scattering patterns.
@@ -349,7 +421,13 @@ def ScatterBO_small_benchmark(
     )
 
     # Load the target scattering data
-    x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
+    x_target, Int_target = LoadData(
+        simulated_or_experimental, scatteringfunction, filename
+    )
+
+    # Normalise the target and simulated scattering patterns
+    Int_target = normalise_data(Int_target, mode=normalisation_mode)
+    Int_sim = normalise_data(Int_sim, mode=normalisation_mode)
 
     # Calculate the difference between the simulated and target scattering patterns
     loss, Int_sim_interp = calculate_loss(
@@ -392,6 +470,8 @@ def ScatterBO_large_benchmark(
     qmin_SAXS=0.01,
     qmax_SAXS=3.0,
     qstep_SAXS=0.01,
+    filename=None,
+    normalisation_mode="peak",
 ):
     """
     Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
@@ -417,6 +497,9 @@ def ScatterBO_large_benchmark(
     rmin (float): The minimum r value for the Gr pattern calculations. Default is 0.
     rmax (float): The maximum r value for the Gr pattern calculations. Default is 30.
     rstep (float): The step size for r values in Gr. Default is 0.1.
+    filename (str or Path, optional): The path to the file to load. If provided, this will be used
+                                directly and the other parameters will be ignored.
+    normalisation_mode (str): The normalization mode. 'peak' for highest peak to 1, 'ML_standard' for -1 to 1, 'none' for no scaling. Default is 'peak'.
 
     Returns:
     loss (float): The loss value is a measure of the difference between the simulated and target scattering patterns.
@@ -438,7 +521,13 @@ def ScatterBO_large_benchmark(
     )
 
     # Load the target scattering data
-    x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
+    x_target, Int_target = LoadData(
+        simulated_or_experimental, scatteringfunction, filename
+    )
+
+    # Normalise the target and simulated scattering patterns
+    Int_target = normalise_data(Int_target, mode=normalisation_mode)
+    Int_sim = normalise_data(Int_sim, mode=normalisation_mode)
 
     # Calculate the difference between the simulated and target scattering patterns
     loss, Int_sim_interp = calculate_loss(
@@ -590,6 +679,8 @@ def ScatterBO_robotic_benchmark(
     qmin_SAXS=0.01,
     qmax_SAXS=3.0,
     qstep_SAXS=0.01,
+    filename=None,
+    normalisation_mode="peak",
 ):
     """
     Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
@@ -619,6 +710,9 @@ def ScatterBO_robotic_benchmark(
     rmin (float): The minimum r value for the Gr pattern calculations. Default is 0.
     rmax (float): The maximum r value for the Gr pattern calculations. Default is 30.
     rstep (float): The step size for r values in Gr. Default is 0.1.
+    filename (str or Path, optional): The path to the file to load. If provided, this will be used
+                                    directly and the other parameters will be ignored.
+    normalisation_mode (str): The normalization mode. 'peak' for highest peak to 1, 'ML_standard' for -1 to 1, 'none' for no scaling. Default is 'peak'.
 
     Returns:
     loss (float): The loss value is a measure of the difference between the simulated and target scattering patterns.
@@ -641,8 +735,12 @@ def ScatterBO_robotic_benchmark(
 
     # Load the target scattering data
     x_target, Int_target = LoadData(
-        simulated_or_experimental, target_filename, scatteringfunction
+        simulated_or_experimental, scatteringfunction, filename
     )
+
+    # Normalise the target and simulated scattering patterns
+    Int_target = normalise_data(Int_target, mode=normalisation_mode)
+    Int_sim = normalise_data(Int_sim, mode=normalisation_mode)
 
     # Calculate the difference between the simulated and target scattering patterns
     loss, Int_sim_interp = calculate_loss(
