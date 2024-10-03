@@ -1,3 +1,4 @@
+from typing import Literal
 from pathlib import Path
 
 from ase.lattice.cubic import FaceCenteredCubic, SimpleCubic, BodyCenteredCubic
@@ -179,13 +180,18 @@ def generate_structure(benchmark_params: BenchmarkParameters, atom="Au"):
     return cluster
 
 
-def LoadData(simulated_or_experimental="simulated", scatteringfunction="Gr"):
+def LoadData(
+    simulated_or_experimental="simulated",
+    target_filename: str | Path | None = None,
+    scatteringfunction="Gr",
+):
     """
     Load scattering data from a file.
 
     Parameters:
     simulated_or_experimental (str): Specifies whether to load simulated or experimental data.
                                      Default is "simulated".
+    target_filename (str or Path): The filename of the target scattering data. Default is None.
     scatteringfunction (str): Specifies the type of scattering function.
                               Options are "Gr", "Sq", "Iq", "Fq", and "SAXS". Default is "Gr".
 
@@ -197,27 +203,30 @@ def LoadData(simulated_or_experimental="simulated", scatteringfunction="Gr"):
     ValueError: If an invalid scatteringfunction is specified.
     """
     # Set the filename based on the simulated_or_experimental and scatteringfunction variables
-    if scatteringfunction == "Gr":
-        if simulated_or_experimental == "simulated":
-            filename = ROOT_DIR / "Data" / "Gr" / "Target_PDF_benchmark.npy"
-        else:  # simulated_or_experimental == 'experimental'
-            filename = ROOT_DIR / "Data" / "Gr" / "Experimental_PDF.gr"
-    elif scatteringfunction == "Sq":
-        if simulated_or_experimental == "simulated":
-            filename = ROOT_DIR / "Data" / "Sq" / "Target_Sq_benchmark.npy"
-        else:  # simulated_or_experimental == 'experimental'
-            filename = ROOT_DIR / "Data" / "Sq" / "Experimental_Sq.sq"
-    elif scatteringfunction == "Iq":
-        if simulated_or_experimental == "simulated":
-            filename = ROOT_DIR / "Data" / "Iq" / "Target_Iq_benchmark.npy"
-    elif scatteringfunction == "Fq":
-        if simulated_or_experimental == "simulated":
-            filename = ROOT_DIR / "Data" / "Fq" / "Target_Fq_benchmark.npy"
-    elif scatteringfunction == "SAXS":
-        if simulated_or_experimental == "simulated":
-            filename = ROOT_DIR / "Data" / "SAXS" / "Target_SAXS_benchmark.npy"
+    if target_filename is not None:
+        filename = target_filename
     else:
-        raise ValueError(f"Invalid scatteringfunction: {scatteringfunction}")
+        if scatteringfunction == "Gr":
+            if simulated_or_experimental == "simulated":
+                filename = ROOT_DIR / "Data" / "Gr" / "Target_PDF_benchmark.npy"
+            else:  # simulated_or_experimental == 'experimental'
+                filename = ROOT_DIR / "Data" / "Gr" / "Experimental_PDF.gr"
+        elif scatteringfunction == "Sq":
+            if simulated_or_experimental == "simulated":
+                filename = ROOT_DIR / "Data" / "Sq" / "Target_Sq_benchmark.npy"
+            else:  # simulated_or_experimental == 'experimental'
+                filename = ROOT_DIR / "Data" / "Sq" / "Experimental_Sq.sq"
+        elif scatteringfunction == "Iq":
+            if simulated_or_experimental == "simulated":
+                filename = ROOT_DIR / "Data" / "Iq" / "Target_Iq_benchmark.npy"
+        elif scatteringfunction == "Fq":
+            if simulated_or_experimental == "simulated":
+                filename = ROOT_DIR / "Data" / "Fq" / "Target_Fq_benchmark.npy"
+        elif scatteringfunction == "SAXS":
+            if simulated_or_experimental == "simulated":
+                filename = ROOT_DIR / "Data" / "SAXS" / "Target_SAXS_benchmark.npy"
+        else:
+            raise ValueError(f"Invalid scatteringfunction: {scatteringfunction}")
 
     # Load the data from the file
     data = (
@@ -568,7 +577,8 @@ def generate_structure_robotic(params: RoboticBenchmarkParameters, atom: str = "
 def ScatterBO_robotic_benchmark(
     params: RoboticBenchmarkParameters,
     plot=False,
-    simulated_or_experimental="simulated",
+    target_filename: str | Path | None = None,
+    simulated_or_experimental: Literal["simulated", "experimental"] = "simulated",
     scatteringfunction="Gr",
     loss_type="rwp",
     qmin=2,
@@ -630,7 +640,9 @@ def ScatterBO_robotic_benchmark(
     )
 
     # Load the target scattering data
-    x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
+    x_target, Int_target = LoadData(
+        simulated_or_experimental, target_filename, scatteringfunction
+    )
 
     # Calculate the difference between the simulated and target scattering patterns
     loss, Int_sim_interp = calculate_loss(
