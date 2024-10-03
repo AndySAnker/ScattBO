@@ -84,25 +84,53 @@ def calculate_scattering(
 
     # Calculate scattering patterns
     if function == "Iq":
-        I /= I.max()
         return Q, I
     elif function == "Sq":
-        S /= S.max()
         return Q, S
     elif function == "Fq":
-        F /= F.max()
         return Q, F
     elif function == "Gr":
-        G /= G.max()
         return r, G
     elif function == "SAXS":
         calc.update_parameters(
             qmin_SAXS=qmin_SAXS, qmax_SAXS=qmax_SAXS, qstep_SAXS=qstep_SAXS
         )
         Q_sim, I_sim = calc.iq(structure_source=cluster)
-        I_sim /= I_sim.max()
         return Q_sim, I_sim
 
+def normalise_data(data, mode='peak'):
+    """
+    Normalise the data.
+
+    Parameters:
+    data (numpy.ndarray or torch.Tensor): The data to normalise.
+    mode (str): The normalization mode. 'peak' for highest peak to 1, 'ML_standard' for -1 to 1, 'none' for no scaling.
+
+    Returns:
+    data (numpy.ndarray or torch.Tensor): The normalised data.
+    """
+    if isinstance(data, np.ndarray):
+        if mode == 'peak':
+            data = data / data.max()
+        elif mode == 'ML_standard':
+            data = 2 * (data - data.min()) / (data.max() - data.min()) - 1
+        elif mode == 'none':
+            pass  # No scaling
+        else:
+            raise ValueError("Mode must be 'peak', 'ML_standard', or 'none'")
+    elif isinstance(data, torch.Tensor):
+        if mode == 'peak':
+            data = data / torch.max(data)
+        elif mode == 'ML_standard':
+            data = 2 * (data - torch.min(data)) / (torch.max(data) - torch.min(data)) - 1
+        elif mode == 'none':
+            pass  # No scaling
+        else:
+            raise ValueError("Mode must be 'peak', 'ML_standard', or 'none'")
+    else:
+        raise TypeError("Input data must be a numpy.ndarray or torch.Tensor")
+    
+    return data
 
 def generate_structure(benchmark_params: BenchmarkParameters, atom="Au"):
     """
@@ -294,6 +322,7 @@ def ScatterBO_small_benchmark(
     qmin_SAXS=0.01,
     qmax_SAXS=3.0,
     qstep_SAXS=0.01,
+    normalisation_mode='peak',
 ):
     """
     Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
@@ -319,6 +348,7 @@ def ScatterBO_small_benchmark(
     rmin (float): The minimum r value for the Gr pattern calculations. Default is 0.
     rmax (float): The maximum r value for the Gr pattern calculations. Default is 30.
     rstep (float): The step size for r values in Gr. Default is 0.1.
+    normalisation_mode (str): The normalization mode. 'peak' for highest peak to 1, 'ML_standard' for -1 to 1, 'none' for no scaling. Default is 'peak'.
 
     Returns:
     loss (float): The loss value is a measure of the difference between the simulated and target scattering patterns.
@@ -341,6 +371,10 @@ def ScatterBO_small_benchmark(
 
     # Load the target scattering data
     x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
+
+    # Normalise the target and simulated scattering patterns
+    Int_target = normalise_data(Int_target, mode=normalisation_mode)
+    Int_sim = normalise_data(Int_sim, mode=normalisation_mode)
 
     # Calculate the difference between the simulated and target scattering patterns
     loss, Int_sim_interp = calculate_loss(
@@ -383,6 +417,7 @@ def ScatterBO_large_benchmark(
     qmin_SAXS=0.01,
     qmax_SAXS=3.0,
     qstep_SAXS=0.01,
+    normalisation_mode='peak',
 ):
     """
     Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
@@ -408,6 +443,7 @@ def ScatterBO_large_benchmark(
     rmin (float): The minimum r value for the Gr pattern calculations. Default is 0.
     rmax (float): The maximum r value for the Gr pattern calculations. Default is 30.
     rstep (float): The step size for r values in Gr. Default is 0.1.
+    normalisation_mode (str): The normalization mode. 'peak' for highest peak to 1, 'ML_standard' for -1 to 1, 'none' for no scaling. Default is 'peak'.
 
     Returns:
     loss (float): The loss value is a measure of the difference between the simulated and target scattering patterns.
@@ -430,6 +466,10 @@ def ScatterBO_large_benchmark(
 
     # Load the target scattering data
     x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
+
+    # Normalise the target and simulated scattering patterns
+    Int_target = normalise_data(Int_target, mode=normalisation_mode)
+    Int_sim = normalise_data(Int_sim, mode=normalisation_mode)
 
     # Calculate the difference between the simulated and target scattering patterns
     loss, Int_sim_interp = calculate_loss(
@@ -580,6 +620,7 @@ def ScatterBO_robotic_benchmark(
     qmin_SAXS=0.01,
     qmax_SAXS=3.0,
     qstep_SAXS=0.01,
+    normalisation_mode='peak',
 ):
     """
     Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
@@ -609,6 +650,7 @@ def ScatterBO_robotic_benchmark(
     rmin (float): The minimum r value for the Gr pattern calculations. Default is 0.
     rmax (float): The maximum r value for the Gr pattern calculations. Default is 30.
     rstep (float): The step size for r values in Gr. Default is 0.1.
+    normalisation_mode (str): The normalization mode. 'peak' for highest peak to 1, 'ML_standard' for -1 to 1, 'none' for no scaling. Default is 'peak'.
 
     Returns:
     loss (float): The loss value is a measure of the difference between the simulated and target scattering patterns.
@@ -631,6 +673,10 @@ def ScatterBO_robotic_benchmark(
 
     # Load the target scattering data
     x_target, Int_target = LoadData(simulated_or_experimental, scatteringfunction)
+
+    # Normalise the target and simulated scattering patterns
+    Int_target = normalise_data(Int_target, mode=normalisation_mode)
+    Int_sim = normalise_data(Int_sim, mode=normalisation_mode)
 
     # Calculate the difference between the simulated and target scattering patterns
     loss, Int_sim_interp = calculate_loss(
