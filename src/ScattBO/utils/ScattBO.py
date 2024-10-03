@@ -223,7 +223,9 @@ def find_data_start(filename):
 
 
 def LoadData(
-    simulated_or_experimental="simulated", scatteringfunction="Gr", filename=None
+    simulated_or_experimental="simulated",
+    scatteringfunction="Gr",
+    filename: Path | None = None,
 ):
     """
     Load scattering data from a file.
@@ -268,14 +270,13 @@ def LoadData(
         else:
             raise ValueError(f"Invalid scatteringfunction: {scatteringfunction}")
 
-    skiprows = find_data_start(filename)
-
-    # Load the data from the file
-    data = (
-        np.loadtxt(filename, skiprows=skiprows)
-        if str(filename).endswith(".gr") or str(filename).endswith(".sq")
-        else np.load(filename)
-    )
+    ascii_names = [".gr", ".sq", ".fq", ".iq", ".dat", ".txt"]
+    file_ending = filename.suffix.lower()
+    if file_ending in ascii_names:
+        skiprows = find_data_start(filename)
+        data = np.loadtxt(filename, skiprows=skiprows)
+    else:
+        data = np.load(filename)
 
     # Extract the x and intensity values from the data
     x_target = data[:, 0]
@@ -590,14 +591,15 @@ def generate_structure_robotic(params: RoboticBenchmarkParameters, atom: str = "
         + pumpE_volume
         + pumpF_volume
     )
-    if total_volume == 1.0:
+    if not np.isclose(total_volume, 1.0, atol=1e-3):
         raise ValueError("The total volume of all pumps must be 1.0")
 
     # Scale the size of the structure based on the number of UV lamps, UV-A lamps, and LED lamps
     scale_factor = (3 * params.uv + 2 * params.uvA + params.LED) / (
         3 * 15 + 2 * 7 + 7
     )  # Normalize to range [0, 1]
-    noshells = int(scale_factor * 8) + 2  # Scale noshells from 2 to 10
+    # TODO: replace for 8
+    noshells = int(scale_factor * 2) + 2  # Scale noshells from 2 to 10
     p = q = r = noshells  # Set p, q, r to noshells
     layers = [noshells] * 3  # Set layers to [noshells, noshells, noshells]
     surfaces = [[1, 0, 0], [1, 1, 0], [1, 1, 1]]  # Set surfaces to [100], [110], [111]
@@ -666,7 +668,6 @@ def generate_structure_robotic(params: RoboticBenchmarkParameters, atom: str = "
 def ScatterBO_robotic_benchmark(
     params: RoboticBenchmarkParameters,
     plot=False,
-    target_filename: str | Path | None = None,
     simulated_or_experimental: Literal["simulated", "experimental"] = "simulated",
     scatteringfunction="Gr",
     loss_type="rwp",
