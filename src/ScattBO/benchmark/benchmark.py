@@ -16,7 +16,8 @@ class Benchmark:
         self,
         size: Literal["small", "large", "robotic"],
         scattering_function: Literal["Iq", "Sq", "Fq", "Gr", "both"],
-        simulated_or_experimental: Literal["simulated", "experimental"],
+        scattering_loss: Literal["rwp", ...],
+        target_filename: str,
     ):
         self.size = size
         self.scattering_function = scattering_function
@@ -54,7 +55,7 @@ class Benchmark:
 
     def _construct_small_benchmark(self) -> Callable[[BenchmarkParameters], float]:
         if self.scattering_function == "both":
-            functions_to_evaluate = ["Gr", "Sq"]
+            functions_to_evaluate = ["Gr", "Fq"]
         else:
             functions_to_evaluate = [self.scattering_function]
 
@@ -73,7 +74,7 @@ class Benchmark:
 
     def _construct_large_benchmark(self) -> Callable[[BenchmarkParameters], float]:
         if self.scattering_function == "both":
-            functions_to_evaluate = ["Gr", "Sq"]
+            functions_to_evaluate = ["Gr", "Fq"]
         else:
             functions_to_evaluate = [self.scattering_function]
 
@@ -92,12 +93,34 @@ class Benchmark:
     def _construct_robotic_benchmark(
         self,
     ) -> Callable[[RoboticBenchmarkParameters], float]:
+        scattering_function = self.scattering_function
+
         def benchmark(params: RoboticBenchmarkParameters) -> float:
-            return ScatterBO_robotic_benchmark(
-                params,
-                scatteringfunction=self.scattering_function,
-                **self.kwargs_for_benchmark,
-            )
+            # TODO:
+            # If "both", use the robotic_benchmark to run
+            # both Gr and Fq.
+            if scattering_function == "both":
+                # TODO: How do we deal with normalization?
+                gr_value = ScatterBO_robotic_benchmark(
+                    params,
+                    scatteringfunction="Gr",
+                    target_filename="...",
+                    **self.kwargs_for_benchmark,
+                )
+                fq_value = ScatterBO_robotic_benchmark(
+                    params,
+                    scatteringfunction="Fq",
+                    target_filename="...",
+                    **self.kwargs_for_benchmark,
+                )
+                return gr_value + fq_value
+            else:
+                return ScatterBO_robotic_benchmark(
+                    params,
+                    scatteringfunction=scattering_function,
+                    target_filename="...",
+                    **self.kwargs_for_benchmark,
+                )
 
         return benchmark
 
