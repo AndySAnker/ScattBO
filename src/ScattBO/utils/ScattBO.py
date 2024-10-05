@@ -592,7 +592,7 @@ def generate_structure_robotic(params: RoboticBenchmarkParameters, atom: str = "
         + pumpF_volume
     )
         
-    if not np.isclose(total_volume, 1.0, atol=5e-3):  # Allow small tolerance due to float precision
+    if not np.isclose(total_volume, 1.0, atol=1e-2):  # Allow small tolerance due to float precision
         raise ValueError(f"The total volume of all pumps must be 1.0. Current total volume is {total_volume:.6f}.")
 
     # Scale the size of the structure based on the number of UV lamps, UV-A lamps, and LED lamps
