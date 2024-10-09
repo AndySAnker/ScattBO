@@ -151,10 +151,12 @@ def generate_structure(benchmark_params: BenchmarkParameters, atom="Au"):
     Returns:
     cluster: The generated structure.
     """
+
     # Scale the size of the structure based on pH
     scale_factor = benchmark_params.pH / 14  # Normalize pH to range [0, 1]
-    noshells = int(scale_factor * 8) + 2  # Scale noshells from 1 to 4
-    p = q = r = noshells  # Set p, q, r to noshells
+    noshells = int(scale_factor * 8) + 2  # Scale noshells from 2 to 10
+    pqr_scale_factor = scale_factor * 6 + 2  # Scale p, q, r from 2 to 8
+    p = q = r = int(pqr_scale_factor)  # Set p, q, r to scaled value
     layers = [noshells] * 3  # Set layers to [noshells, noshells, noshells]
     surfaces = [[1, 0, 0], [1, 1, 0], [1, 1, 1]]  # Set surfaces to [100], [110], [111]
 
@@ -600,7 +602,8 @@ def generate_structure_robotic(params: RoboticBenchmarkParameters, atom: str = "
         3 * 15 + 2 * 7 + 7
     )  # Normalize to range [0, 1]
     noshells = int(scale_factor * 8) + 2  # Scale noshells from 2 to 10
-    p = q = r = noshells  # Set p, q, r to noshells
+    pqr_scale_factor = scale_factor * 6 + 2  # Scale p, q, r from 2 to 8
+    p = q = r = int(pqr_scale_factor)  # Set p, q, r to scaled value
     layers = [noshells] * 3  # Set layers to [noshells, noshells, noshells]
     surfaces = [[1, 0, 0], [1, 1, 0], [1, 1, 1]]  # Set surfaces to [100], [110], [111]
 
