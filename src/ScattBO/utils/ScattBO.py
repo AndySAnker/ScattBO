@@ -593,13 +593,20 @@ def generate_structure_robotic(params: RoboticBenchmarkParameters, atom: str = "
         + pumpE_volume
         + pumpF_volume
     )
-        
-    if not np.isclose(total_volume, 1.0, atol=1e-2):  # Allow small tolerance due to float precision
-        raise ValueError(f"The total volume of all pumps must be 1.0. Current total volume is {total_volume:.6f}.")
+
+    if not np.isclose(
+        total_volume, 1.0, atol=1e-2
+    ):  # Allow small tolerance due to float precision
+        raise ValueError(
+            f"The total volume of all pumps must be 1.0. Current total volume is {total_volume:.6f}."
+        )
 
     # Scale the size of the structure based on the number of UV lamps, UV-A lamps, and LED lamps
+    max_uv = params.__class__.model_fields["uv"].metadata[1].le
+    max_uva = params.__class__.model_fields["uvA"].metadata[1].le
+    max_led = params.__class__.model_fields["LED"].metadata[1].le
     scale_factor = (3 * params.uv + 2 * params.uvA + params.LED) / (
-        3 * 15 + 2 * 7 + 7
+        3 * max_uv + 2 * max_uva + 7 * max_led
     )  # Normalize to range [0, 1]
     noshells = int(scale_factor * 8) + 2  # Scale noshells from 2 to 10
     pqr_scale_factor = scale_factor * 6 + 2  # Scale p, q, r from 2 to 8
