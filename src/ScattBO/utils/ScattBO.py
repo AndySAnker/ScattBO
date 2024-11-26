@@ -605,8 +605,8 @@ def generate_structure_robotic(params: RoboticBenchmarkParameters, atom: str = "
     max_uv = params.__class__.model_fields["uv"].metadata[1].le
     max_uva = params.__class__.model_fields["uvA"].metadata[1].le
     max_led = params.__class__.model_fields["LED"].metadata[1].le
-    scale_factor = (3 * params.uv + 2 * params.uvA + params.LED) / (
-        3 * max_uv + 2 * max_uva + 7 * max_led
+    scale_factor = (3 * params.uv + 2 * params.uvA + 1 * params.LED) / (
+        3 * max_uv + 2 * max_uva + 1 * max_led
     )  # Normalize to range [0, 1]
     noshells = int(scale_factor * 8) + 2  # Scale noshells from 2 to 10
     pqr_scale_factor = scale_factor * 6 + 2  # Scale p, q, r from 2 to 8
