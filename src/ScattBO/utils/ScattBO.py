@@ -692,6 +692,7 @@ def ScatterBO_robotic_benchmark(
     qstep_SAXS=0.01,
     filename=None,
     normalisation_mode="peak",
+    return_all=None,
 ):
     """
     Simulate a scattering pattern from synthesis parameters, load a target scattering pattern, and calculate the similarity between them.
@@ -724,9 +725,11 @@ def ScatterBO_robotic_benchmark(
     filename (str or Path, optional): The path to the file to load. If provided, this will be used
                                     directly and the other parameters will be ignored.
     normalisation_mode (str): The normalization mode. 'peak' for highest peak to 1, 'ML_standard' for -1 to 1, 'none' for no scaling. Default is 'peak'.
+    return_all (bool): True for returning all information in the benchmark.
 
     Returns:
     loss (float): The loss value is a measure of the difference between the simulated and target scattering patterns.
+    return_all (bool): True for returning all information in the benchmark.
     """
     # Simulate a scattering pattern from synthesis parameters
     cluster = generate_structure_robotic(params)
@@ -775,8 +778,10 @@ def ScatterBO_robotic_benchmark(
             )
         )
         fig.show()
-
-    return loss
+    if return_all:
+        return loss, cluster, x_target, x_sim, Int_target, Int_sim, Int_sim_interp
+    else:
+        return loss
 
 
 if __name__ == "__main__":
